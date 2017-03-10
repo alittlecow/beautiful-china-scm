@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.websiteuser.WebsiteUserMapper" >
+
+
+    <!-- 获取所有网站用户管理信息-->
+    <select id="getAllUser" resultType="com.beautifulchina.websiteuser.pojo.WebsiteUser">
+            select
+            id,
+            name,
+            nickname,
+            email,
+            sex,
+            passport,
+            status,
+            regtime,
+            point,
+            usablepoint,
+            type,
+            facebookname,
+            ip,
+            locktime,
+            lockreson
+            from ts_user
+            ORDER BY id DESC
+    </select>
+
+    <!-- 根据条件获取所有网站用户信息 -->
+    <select id="getAllWebsiteUserList" resultType="com.beautifulchina.websiteuser.pojo.WebsiteUser">
+        select
+        id,
+        name,
+        nickname,
+        email,
+        sex,
+        passport,
+        status,
+        regtime,
+        point,
+        usablepoint,
+        type,
+        facebookname,
+        ip,
+        locktime,
+        lockreson
+        from ts_user
+
+        <include refid="sqlWhere"></include>
+
+    </select>
+    <sql id="sqlWhere">
+        <where>
+            <if test="name != null and name != ''">
+                and name like CONCAT('%',#{name},'%')
+            </if>
+            <if test="nickName != null and nickName != ''">
+                and nickname  like CONCAT('%',#{nickName},'%')
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status}
+            </if>
+        </where>
+        ORDER BY id
+        <if test="limit != null and start != null">
+
+            limit #{start},#{limit}
+        </if>
+    </sql>
+
+    <!-- 查询网站用户管理数量 -->
+        <select id="getAllWebsiteUserListCount" resultType="int" parameterType="com.beautifulchina.websiteuser.bo.WebsiteUserBO">
+            select count(*)
+               from ts_user t1
+            <include refid="sqlWhere"/>
+        </select>
+
+    <!-- 冻结网站用户管理信息 -->
+    <update id="freeze" parameterType="com.beautifulchina.websiteuser.bo.WebsiteUserBO">
+        update ts_user
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="lockReson != null">
+                lockreson = #{lockReson},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="lockTime != null">
+                locktime = #{lockTime},
+            </if>
+        </trim>
+        where id = #{id}
+    </update>
+</mapper>

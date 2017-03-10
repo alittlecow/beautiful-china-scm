@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.menu.PlateMapper">
+
+    <!-- <resultMap id="plate" type="com.beautifulchina.pojo.menu.Plate" >
+         <id column="plate_code" property="code" jdbcType="VARCHAR" />
+         <result column="plate_name_en" property="enName" jdbcType="VARCHAR" />
+         <result column="plate_name_fr" property="frName" jdbcType="VARCHAR" />
+         <result column="plate_notes" property="notes" jdbcType="VARCHAR" />
+         <result column="plate_sort" property="sort" jdbcType="INTEGER" />
+         <result column="status" property="status" jdbcType="VARCHAR" />
+     </resultMap>-->
+
+    <select id="getPlateList" resultType="com.beautifulchina.menu.pojo.Plate">
+        select t1.plate_code code,
+        <if test="language== 'en'||language== 'zh'">
+            t1.plate_name_en plateName,
+        </if>
+        <if test="language== 'fr'">
+            t1.plate_name_fr plateName,
+        </if>
+        t1.plate_notes notes,
+        t1.plate_sort sort,
+        t1.status
+        from ts_role t2
+        left join ts_rolemenu t3 on t2.role_code=t3.role_code
+        left join ts_menu t4 on t3.menu_code=t4.menu_code
+        left join ts_plate t1 on t4.plate_code=t1.plate_code
+        <include refid="where"></include>
+        GROUP BY t1.plate_code
+    </select>
+    <sql id="where">
+        <where>
+            <if test="roleCode!=null">
+                t2.role_code=#{roleCode}
+            </if>
+            and t1.plate_code is not null
+        </where>
+    </sql>
+</mapper>

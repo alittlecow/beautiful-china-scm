@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.hotel.HotelMapper">
+    <!--获取酒店信息-->
+    <select id="getHotel" parameterType="com.beautifulchina.hotel.bo.HotelBO"
+            resultType="com.beautifulchina.hotel.pojo.Hotel">
+        select t.htl_id id,dept_code supDeptCode,
+
+        htl_name_cn hotelNameCn,
+
+        <if test="language=='en'">
+        t.htl_name_en hotelName,
+            htl_address_en address,
+            t1.name_en hotelCity,
+        </if>
+
+        <if test="language=='fr'">
+        t.htl_name_fr hotelName,
+            htl_address_fr address,
+            t1.name_fr hotelCity,
+        </if>
+        htl_tel hotelTel,htl_fax hotelFax,
+        t.htl_name_en hotelNameEn,
+        htl_address_en addressEn,
+        t1.name_en hotelCityEn,
+
+        t.htl_name_fr hotelNameFr,
+        htl_address_fr addressFr,
+        t1.name_fr hotelCityFr,
+
+        htl_desc_en descEn,
+
+
+        htl_desc_fr descFr,htl_address_cn addressCn,
+
+
+        htl_status status,
+
+
+        t1.id cityId
+
+
+        from tm_hotel t
+        left join tm_city t1 on t.htl_city_id=t1.id
+        <include refid="where"></include>
+        order by t.htl_id desc
+        limit #{start},#{limit}
+    </select>
+    <!--查询条件-->
+    <sql id="where">
+        <where>
+            <if test="hotelName!=null and language=='en'">
+                and t.htl_name_cn like CONCAT('%',#{hotelName},'%')
+                or t.htl_name_en like CONCAT('%',#{hotelName},'%')
+
+            </if>
+
+            <if test="hotelName!=null and language=='fr'">
+                and t.htl_name_cn like CONCAT('%',#{hotelName},'%')
+
+                or t.htl_name_fr like CONCAT('%',#{hotelName},'%')
+            </if>
+
+        </where>
+    </sql>
+    <!--获取酒店信息数量-->
+    <select id="getCount" resultType="int" parameterType="com.beautifulchina.hotel.bo.HotelBO">
+        select count(*) from tm_hotel t
+        left join tm_city t1 on t.htl_city_id=t1.id
+        <include refid="where"></include>
+    </select>
+    <!--删除酒店信息-->
+    <delete id="delHotel">
+        delete from tm_hotel where htl_id in
+        <foreach item="ids" index="index" collection="list" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </delete>
+    <!--获取城市列表-->
+    <select id="getCity" resultType="map" parameterType="string">
+        select id cityId,
+        <if test="_parameter=='fr'">
+            name_fr city
+        </if>
+        <if test="_parameter!='fr'">
+            name_en city
+        </if>
+        from tm_city
+        ORDER BY id
+    </select>
+    <!--获取供应商列表-->
+    <select id="getSup" resultType="map" parameterType="string">
+        select dept_code deptCode,
+        <if test="_parameter=='fr'">
+            name_fr supName
+        </if>
+        <if test="_parameter!='fr'">
+            name_en supName
+        </if>
+        from ts_supplier
+    </select>
+    <!--新增酒店信息-->
+    <insert id="addHotel" parameterType="com.beautifulchina.hotel.bo.HotelBO">
+        insert into tm_hotel
+        (dept_code,
+        htl_name_cn,
+        htl_name_en,
+        htl_name_fr,
+        htl_tel,
+        htl_fax,
+        htl_desc_en,
+        htl_desc_fr,
+        htl_address_cn,
+        htl_address_en,
+        htl_address_fr,
+        htl_status,
+        htl_createtime,
+        htl_user,
+        htl_city_id)
+        values
+        (#{supDeptCode},
+        #{hotelNameCn},
+        #{hotelNameEn},
+        #{hotelNameFr},
+        #{hotelTel},
+        #{hotelFax},
+        #{descEn},
+        #{descFr},
+        #{addressCn},
+        #{addressEn},
+        #{addressFr},
+        #{status},
+        #{createTime},
+        #{user},
+        #{cityId}
+        )
+    </insert>
+    <!--更新酒店信息-->
+    <update id="updateHotel" parameterType="com.beautifulchina.hotel.bo.HotelBO">
+        update tm_hotel
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="supDeptCode != null">
+                dept_code = #{supDeptCode},
+            </if>
+            <if test="hotelNameEn != null">
+                htl_name_en = #{hotelNameEn},
+            </if>
+            <if test="hotelNameCn != null">
+                htl_name_cn = #{hotelNameCn},
+            </if>
+            <if test="hotelNameFr != null">
+                htl_name_fr = #{hotelNameFr},
+            </if>
+            <if test="hotelTel != null">
+                htl_tel = #{hotelTel},
+            </if>
+            <if test="hotelFax != null">
+                htl_fax = #{hotelFax},
+            </if>
+            <if test="descEn != null">
+                htl_desc_en = #{descEn},
+            </if>
+            <if test="descFr != null">
+                htl_desc_fr = #{descFr},
+            </if>
+            <if test="addressEn != null">
+                htl_address_en = #{addressEn},
+            </if>
+            <if test="addressCn != null">
+                htl_address_cn = #{addressCn},
+            </if>
+            <if test="addressFr != null">
+                htl_address_fr = #{addressFr},
+            </if>
+            <if test="status != null">
+                htl_status = #{status},
+            </if>
+            <if test="cityId != null">
+                htl_city_id = #{cityId},
+            </if>
+            <if test="createTime != null">
+                htl_createtime = #{createTime},
+            </if>
+            <if test="user != null">
+                htl_user = #{user},
+            </if>
+        </trim>
+        where htl_id=#{id}
+    </update>
+</mapper>

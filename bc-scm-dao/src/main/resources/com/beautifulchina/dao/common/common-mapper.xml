@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.common.CommonMapper">
+
+    <!-- 查询城市 -->
+    <select id="queryCityList" parameterType="Map" resultType="com.beautifulchina.city.pojo.City">
+        select id cityId,
+               name_en cityNameEn,
+               name_fr cityNameFr
+        from tm_city
+        <include refid="cityWhere"></include>
+        ORDER BY desc id
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+
+    </select>
+
+    <!--过滤条件-->
+    <sql id="cityWhere">
+        <where>
+            <if test="cityNameEn!=null and cityNameEn!=''">
+                and name_en  like CONCAT('',#{cityNameEn},'%')
+            </if>
+            <if test="cityNameFr!=null and cityNameFr!=''">
+                and name_fr  like CONCAT('',#{cityNameFr},'%')
+            </if>
+        </where>
+    </sql>
+
+    <!-- 查询城市个数 -->
+    <select id="queryCityListCount" parameterType="com.beautifulchina.common.bo.CityQueryBO" resultType="int">
+        select count(*)
+        from tm_city
+        <include refid="cityWhere"></include>
+    </select>
+
+    <!-- 获取序列 -->
+    <select id="sequence" resultType="int">
+        select nextval('tbl_fs')
+    </select>
+</mapper>

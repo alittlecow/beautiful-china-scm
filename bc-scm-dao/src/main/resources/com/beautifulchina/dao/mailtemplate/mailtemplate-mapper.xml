@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.mailtemplate.MailTemplateMapper" >
+
+    <!-- 根据用户编号获取用户所有信息 -->
+    <select id="getMailTemplateList" resultType="com.beautifulchina.mailtemplate.bo.MailTemplateBO">
+            select id,
+            <if  test="language=='en'">
+                title_en title,
+            </if>
+            <if  test="language=='fr'">
+            title_fr title,
+            </if>
+
+            name,title_en titleEn,title_fr titleFr,content_en contentEn,content_fr contentFr FROM ts_mailtemplate
+
+    </select>
+
+    <!-- 获取邮件模板总数量-->
+    <select id="getMailTemplateCount" resultType="int">
+        select count(*)
+        from ts_mailtemplate
+    </select>
+
+    <!-- 增加一个新的邮件模板 -->
+    <insert id="saveMailTemplate" parameterType="com.beautifulchina.mailtemplate.bo.MailTemplateBO">
+        insert into ts_mailtemplate (
+        name,title_en,title_fr,content_en,content_fr
+        )
+        values (
+        #{name},
+        #{titleEn},
+        #{titleFr},
+        #{contentEn},
+        #{contentFr}
+        )
+    </insert>
+
+    <!-- 更新修改后的模板信息 -->
+    <update id="updateMailTemplate" parameterType="com.beautifulchina.mailtemplate.bo.MailTemplateBO">
+        update ts_mailtemplate
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="titleEn != null">
+                title_en = #{titleEn},
+            </if>
+            <if test="titleFr != null">
+                title_fr = #{titleFr},
+            </if>
+            <if test="contentEn != null">
+                content_en = #{contentEn},
+            </if>
+            <if test="contentFr != null">
+                content_fr = #{contentFr},
+            </if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <select id="getMailTemplateByName" parameterType="string" resultType="com.beautifulchina.mailtemplate.bo.MailTemplateBO">
+        SELECT title_en titleEn,title_fr titleFr,content_en contentEn,content_fr contentFr
+        FROM ts_mailtemplate
+        WHERE name=#{name}
+    </select>
+</mapper>

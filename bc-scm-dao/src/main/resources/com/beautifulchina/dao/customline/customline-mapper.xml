@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.customline.CustomlineMapper" >
+
+    <sql id="sqlWhere">
+        <where>
+            <if test="name != null and name != ''">
+                and name like CONCAT('%',#{name},'%')
+            </if>
+            <if test="createTimeSmall!=null">
+                and createTime &gt;= #{createTimeSmall}
+            </if>
+            <if test="createTimeBig!=null">
+                and createTime &lt;= #{createTimeBig}
+            </if>
+            <if test="email != null and email != ''">
+                and email like CONCAT('%',#{email},'%')
+            </if>
+            <if test="phone != null and phone != ''">
+                and phone like CONCAT('%',#{phone},'%')
+            </if>
+
+
+
+
+        </where>
+
+    </sql>
+
+
+    <!-- 根据条件获取所有用户 -->
+    <select id="getAllUser" resultType="com.beautifulchina.customline.pojo.Customline"  parameterType="com.beautifulchina.customline.bo.CustomlineBO">
+           SELECT
+            id,
+            name ,
+            email ,
+            phone,
+            person,
+            arrivetime,
+            returntime,
+            hotellevel,
+            status,
+            createtime,
+            sex,
+            otherrequirement,
+            result,
+            pass_id passId,
+            dealtime
+        FROM TB_CUSTOMLINE
+        <include refid="sqlWhere"></include>
+        ORDER BY id
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+
+        </select>
+
+    <!-- 获取定制线路总数 -->
+    <select id="getCustomlineCount" resultType="int" parameterType="com.beautifulchina.customline.bo.CustomlineBO">
+        SELECT COUNT(*) FROM TB_CUSTOMLINE
+        <include refid="sqlWhere"/>
+    </select>
+
+
+
+
+
+    <!-- 更新修改后的定制线路 -->
+    <update id="updateCustomline" parameterType="com.beautifulchina.customline.pojo.Customline">
+        update TB_CUSTOMLINE
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="email != null">
+                email = #{email},
+            </if>
+            <if test="phone != null">
+                phone = #{phone},
+            </if>
+            <if test="person != null">
+                person = #{person},
+            </if>
+            <if test="arriveTime != null">
+                arrivetime = #{arriveTime},
+            </if>
+            <if test="returnTime != null">
+                returntime = #{returnTime},
+            </if>
+            <if test="hotelLevel != null">
+                hotellevel = #{hotelLevel},
+            </if>
+            <if test="sex != null">
+                sex = #{sex},
+            </if>
+            <if test="createTime!= null">
+                createtime = #{createTime},
+            </if>
+            <if test="otherRequirement!= null">
+                otherrequirement = #{otherRequirement},
+            </if>
+            <if test="passId!= null">
+                pass_id = #{passId},
+            </if>
+            <if test="dealTime!= null">
+                dealtime = #{dealTime},
+            </if>
+            <if test="result!= null">
+                result = #{result},
+            </if>
+
+
+        </trim>
+        where id = #{id}
+    </update>
+
+
+
+
+
+
+    <!-- 获取城市名和旅游天数 -->
+    <select id="getAll" resultType="com.beautifulchina.destinationday.pojo.DestinationDay"  parameterType="com.beautifulchina.destinationday.bo.DestinationDayBO">
+        select
+        t2.name_en cityNameEn,t2.id cityId,
+        t1.day day,t1.cst_id cstId
+        from TB_DESTINATIONDAY t1
+        left join  TM_CITY  t2 on t1.city_id=t2.id
+    </select>
+
+    <!-- 获取记录总数 -->
+    <select id="getDestinationDayCount" resultType="int" parameterType="com.beautifulchina.destinationday.bo.DestinationDayBO">
+        SELECT COUNT(*) FROM
+        TB_DESTINATIONDAY
+    </select>
+
+
+    <!-- 修改城市名和旅行天数 -->
+    <update id="updateDestinationDay" parameterType="com.beautifulchina.destinationday.pojo.DestinationDay">
+        update TB_DESTINATIONDAY
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="cityId != null">
+                city_id = #{cityId},
+            </if>
+            <if test="day != null">
+                day = #{day},
+            </if>
+        </trim>
+        where cst_id = #{cstId}
+    </update>
+
+
+    <!--新增城市名和旅行天数-->
+    <insert id="addDestinationDay" parameterType="com.beautifulchina.destinationday.bo.DestinationDayBO"
+           >
+        insert into TB_DESTINATIONDAY
+        (city_id, day)
+        values
+        (#{cityId},#{day})
+    </insert>
+
+
+
+    <!-- 删除城市名和旅行天数-->
+    <delete id="delete">
+        delete  from TB_DESTINATIONDAY  where cst_id in
+        <foreach item="ids" index="index" collection="list" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+
+    </delete>
+
+
+
+    <!--获取城市列表-->
+    <select id="getCity" resultType="map">
+        select id id,name_en city from tm_city
+    </select>
+
+
+
+</mapper>

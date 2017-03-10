@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.rolemanage.RoleManageMapper">
+    <!--根据条件获取模块信息-->
+    <select id="getModuleListByRoleCode" parameterType="string" resultType="com.beautifulchina.menu.pojo.Module">
+       select t.module_code code,t.module_name_en enName,
+       t.module_name_fr frName,t.module_notes notes,
+       t.module_sort sort,t.status
+       from ts_module t INNER JOIN
+      (select t2.module_code from ts_menu t2 INNER  JOIN
+      (select menu_code from ts_rolemenu
+        <if test="rolecode != null and rolecode != ''">
+            where role_code=#{rolecode}
+        </if>
+       ) t1 on
+       t1.menu_code=t2.menu_code) t1 on t.module_code=t1.module_code
+        ORDER BY code
+    </select>
+
+    <!--根据条件获取菜单信息-->
+    <select id="getMenuListByRoleCode" parameterType="string" resultType="com.beautifulchina.menu.pojo.Menu">
+    select
+    t1.module_code moduleCode,
+    t1.menu_name_en enName,
+    t2.menu_code code
+    from ts_menu t1
+    left join ts_rolemenu t2
+    on t1.menu_code = t2.menu_code
+    where t2.role_code=#{role_code}
+    ORDER BY moduleCode
+    </select>
+    <!--获取模块信息-->
+    <select id="getModuleList" resultType="com.beautifulchina.menu.pojo.Module">
+        select
+        t2.plate_code plateCode,
+        t2.module_code code,
+        <if test="language== 'en'||language== 'zh'">
+        t1.module_name_en moduleName
+        </if>
+        <if test="language== 'fr'">
+        t1.module_name_fr moduleName
+        </if>
+        from ts_module t1
+        left join ts_menu t2
+        on t1.module_code=t2.module_code group by  t2.module_code
+        ORDER BY plateCode
+    </select>
+
+    <select id="getPlateList" resultType="com.beautifulchina.menu.pojo.Plate">
+        select plate_code code,
+        <if test="language== 'en'||language== 'zh'">
+            plate_name_en plateName
+        </if>
+        <if test="language== 'fr'">
+            plate_name_fr plateName
+        </if>
+        from ts_plate
+        ORDER BY code
+    </select>
+
+    <!--获取根据模块id获取所有菜单信息-->
+    <select id="getMenuList" parameterType="string" resultType="com.beautifulchina.menu.pojo.Menu">
+        select menu_code code,
+           <if test="language== 'en'||language== 'zh'">
+               menu_name_en menuName,
+           </if>
+           <if test="language== 'fr'">
+               menu_name_fr menuName,
+           </if>
+            plate_code plateCode,
+            menu_link link,
+            module_code moduleCode,
+            menu_notes menuNotes from ts_menu
+            ORDER BY menu_code
+            <!--<if test="moduleId != null and moduleId != ''">-->
+            <!--where module_code=#{moduleId}-->
+            <!--</if>-->
+    </select>
+    <!--新增用户-->
+    <insert id="saveRole" parameterType="com.beautifulchina.rolemanage.pojo.Role">
+        insert into ts_role VALUES
+        (#{roleCode},#{roleEnName},#{roleFrName},#{roleLevel},
+        #{roleNotes},#{status},#{operateTime},#{operatingPersonnel})
+    </insert>
+    <!--更新用户信息-->
+    <update id="editRole" parameterType="com.beautifulchina.rolemanage.pojo.Role">
+        UPDATE ts_role set role_name_en=#{roleEnName},role_name_fr=#{roleFrName},
+        role_level=#{roleLevel},role_notes=#{roleNotes},status=#{status},
+        operate_time=#{operateTime},pass_loginname=#{operatingPersonnel}
+        where role_code=#{roleCode}
+    </update>
+    <!--分页获取全部用户-->
+    <select id="getAllRole" resultType="com.beautifulchina.rolemanage.pojo.Role">
+        select
+        role_code roleCode,
+        <if test="language=='en'">
+            role_name_en roleName,
+        </if>
+        <if test="language== 'fr'">
+            role_name_fr roleName,
+        </if>
+        role_name_en roleEnName,role_name_fr roleFrName,
+        role_level roleLevel,role_notes roleNotes,status status,
+        operate_time operateTime,pass_loginname operatingPersonnel,role_code roleCode
+        from ts_role
+        ORDER BY role_code
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+
+    <!--获取所有角色名和角色代码-->
+    <select id="getAllRoleCodeAndName" resultType="com.beautifulchina.rolemanage.bo.RoleBO" parameterType="com.beautifulchina.rolemanage.bo.RoleBO">
+        select
+        role_code roleCode,
+        <if test="language== 'en'||language== 'zh'">
+            role_name_en roleName
+        </if>
+        <if test="language== 'fr'">
+            role_name_fr roleName
+        </if>
+        from ts_role
+        <if test="roleLevel=='0001'">
+            where role_level=#{roleLevel}
+        </if>
+        ORDER BY role_code
+    </select>
+    <!--获取用户数量-->
+    <select id="getAllRoleCount" resultType="int">
+        select count(*)
+         from ts_role
+    </select>
+    <!--获取用户菜单-->
+    <select id="getRoleMenu" resultType="string" parameterType="string">
+        select menu_code from ts_rolemenu where role_code=#{roleCode}
+    </select>
+    <!--插入角色新菜单-->
+    <delete id="delRoleMenu" parameterType="string">
+        delete from ts_rolemenu where role_code=#{roleCode}
+    </delete>
+    <insert id="addRoleMenu" parameterType="list">
+        insert into ts_rolemenu (role_code, menu_code, operate_time, pass_loginname) VALUES
+        <foreach collection="list" item="item" index="index" separator="," >
+        (#{item.roleCode},#{item.menuCode},#{item.operateTime},#{item.loginName})
+        </foreach>
+    </insert>
+    <!-- 根据角色代码获取角色信息 -->
+    <select id="getRoleByRoleCode" parameterType="string" resultType="com.beautifulchina.rolemanage.bo.RoleBO">
+        select
+        role_code roleCode,
+        role_name_en roleEnName,
+        role_level roleLevel,
+        role_name_fr roleFrName,
+        status
+        from ts_role
+        where role_code=#{roleCode}
+    </select>
+</mapper>

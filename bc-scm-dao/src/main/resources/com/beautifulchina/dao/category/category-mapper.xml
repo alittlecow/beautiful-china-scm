@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.category.CategoryMapper" >
+
+    <!-- 根据条件获取所有分类管理信息 -->
+    <select id="getAllCategoryList" resultType="com.beautifulchina.category.pojo.Category" parameterType="com.beautifulchina.category.bo.CategoryBO">
+        select a.code,
+        <if test="language=='en'">
+        a.name_en name,
+        </if>
+        <if test="language=='fr'">
+        a.name_fr name,
+        </if>
+        a.name_en nameEn,
+        a.name_fr nameFr,
+        a.level,
+        a.parent,
+        a.id,
+        b.name_en parentnameEn,
+        b.name_fr parentnameFr
+        from tm_category a left join tm_category b on a.parent = b.id
+        <include refid="sqlWhere"></include>
+        ORDER BY a.id desc
+    </select>
+    <sql id="sqlWhere">
+        <where>
+            <!--<if test="name != null and name != ''">
+                and (
+                a.name_en like CONCAT('%',#{name},'%')
+                or
+                a.name_fr like CONCAT('%',#{name},'%')
+                )
+            </if>-->
+            <if test="name != null and name != '' and language=='en'">
+                and  a.name_en like CONCAT('%',#{name},'%')
+            </if>
+            <if test="name != null and name != '' and language=='fr'">
+                and  a.name_fr like CONCAT('%',#{name},'%')
+            </if>
+            <if test="code != null and code != ''">
+                and a.code = #{code}
+            </if>
+            <if test="id != null and id != ''">
+                and a.parent = #{id}
+            </if>
+            <if test="level != null and level != ''">
+                and a.level = #{level}
+            </if>
+        </where>
+
+    </sql>
+
+    <!-- 查询分类管理信息数量 -->
+    <select id="getAllCategoryListCount" resultType="int" parameterType="com.beautifulchina.category.bo.CategoryBO">
+        select count(*)
+        from tm_category a
+        <include refid="sqlWhere"/>
+    </select>
+
+    <!-- 根据id查询分类 -->
+    <select id="getCategoryListById" resultType="com.beautifulchina.category.pojo.Category" parameterType="com.beautifulchina.category.bo.CategoryBO">
+        select a.code,
+        a.name_en nameEn,
+        a.name_fr nameFr,
+        a.level,
+        a.parent,
+        a.id,
+        a.subcode
+        from tm_category a
+        where id = #{parent}
+    </select>
+
+    <!-- 进入子分类管理信息 -->
+    <select id="getAllIntoSubCategoryList" resultType="com.beautifulchina.category.pojo.Category"  parameterType="com.beautifulchina.category.bo.CategoryBO">
+        select code,
+        name_en nameEn,
+        name_fr nameFr,
+        level,
+        parent,
+        id
+        where parent = #{id}
+        from tm_category
+    </select>
+
+    <!-- 查询进入的子分类管理信息数量 -->
+    <select id="getAllIntoSubCategoryListCount" resultType="int" parameterType="com.beautifulchina.category.bo.CategoryBO">
+        select count(*)
+        from tm_category
+        <include refid="sqlWhere"/>
+    </select>
+
+    <!-- 返回父分类管理信息 -->
+    <select id="getAllReturnCategoryList" resultType="com.beautifulchina.category.pojo.Category"  parameterType="com.beautifulchina.category.bo.CategoryBO">
+        select code,
+        name_en nameEn,
+        name_fr nameFr,
+        level,
+        parent,
+        id
+        where level = #{level}
+        from tm_category
+    </select>
+
+    <!-- 查询返回的父分类管理信息数量 -->
+    <select id="getAllReturnCategoryListCount" resultType="int" parameterType="com.beautifulchina.category.bo.CategoryBO">
+        select count(*)
+        from tm_category
+        <include refid="sqlWhere"/>
+    </select>
+
+    <!-- 添加子分类管理信息-->
+    <insert id="addASub" parameterType="com.beautifulchina.category.bo.CategoryBO">
+        insert into tm_category (
+        code,
+        name_en,
+        name_fr,
+        parent,
+        level,
+        subcode)
+        values (
+        #{code},
+        #{nameEn},
+        #{nameFr},
+        #{parent},
+        #{level},
+        #{subCode})
+    </insert>
+
+    <!-- 更新分类管理信息 -->
+    <update id="update" parameterType="com.beautifulchina.category.bo.CategoryBO">
+        update tm_category
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="nameEn != null">
+                name_en = #{nameEn},
+            </if>
+            <if test="nameFr != null">
+                name_fr = #{nameFr},
+            </if>
+            <if test="subCode != null">
+                subcode = #{subCode},
+            </if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+        delete from tm_category where code in
+        <foreach item="codes" index="index" collection="list" open="(" separator="," close=")">
+            #{codes}
+        </foreach>
+    </delete>
+
+
+    <!-- 无条件获取所有分类 -->
+    <select id="getAllCategory" resultType="com.beautifulchina.category.bo.CategoryBO" parameterType="string">
+           SELECT id,
+                  code,
+                    <if test="language =='en'||language=='zh' ">
+                        name_en name,
+                    </if>
+                    <if test="language =='fr' ">
+                        name_fr name,
+                    </if>
+                  parent,
+                  subcode
+        FROM tm_category
+        ORDER BY id
+    </select>
+    <!--根据id获取子节点-->
+    <select id="getChildrenById" resultType="int">
+        select id from tm_category where parent in
+        <foreach item="ids" index="index" collection="list" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </select>
+
+</mapper>

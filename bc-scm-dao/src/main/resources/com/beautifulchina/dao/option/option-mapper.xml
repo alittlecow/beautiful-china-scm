@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.option.OptionMapper" >
+    <!-- 查询选项信息-->
+    <select id="getOption" resultType="com.beautifulchina.option.bo.OptionBO" parameterType="com.beautifulchina.option.bo.OptionBO">
+        select
+        id  optionId,
+        <if test="language=='en'">
+            name_en optionName,
+        </if>
+        <if test="language=='fr'">
+            name_fr optionName,
+        </if>
+
+        name_en optionEnName,
+        name_fr optionFrName
+        from tm_option
+        <include refid="sqlWhere"></include>
+        ORDER BY id desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </select>
+    <sql id="sqlWhere">
+        <where>
+            <if test="deptCode != null and deptCode != ''">
+                and dept_code = #{deptCode}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 查询选项数量 -->
+    <select id="getOptionCount" resultType="int" parameterType="com.beautifulchina.option.bo.OptionBO">
+        select  count(*)
+        from  tm_option
+    </select>
+
+    <!-- 保存选项-->
+    <insert id="saveName" parameterType="com.beautifulchina.option.bo.OptionBO">
+        insert into tm_option (
+        name_en,
+        name_fr,
+        dept_code
+        )
+        values (
+        #{optionEnName},
+        #{optionFrName},
+        #{deptCode}
+       )
+    </insert>
+
+    <!-- 判断是否可以删除 -->
+    <select id="judgeOptionId"  resultType="int" parameterType="com.beautifulchina.option.bo.OptionBO">
+        SELECT count(*)
+        FROM
+        tm_option t1
+        LEFT JOIN
+        tm_value t2 ON t1.id = t2.option_id
+        LEFT JOIN
+        tm_tour_option_value t3 ON t2.id = t3.value_id
+        WHERE t3.id IS not NULL and t1.id=#{optionId}
+    </select>
+
+    <!-- 判断是否可以删除 -->
+    <select id="getOptionById" resultType="int" parameterType="int">
+        select t2.id valueId
+        from tm_option t1
+        left join tm_value t2
+        on t1.id=t2.option_id where t1.id=#{id}
+    </select>
+
+    <!-- 删除选项-->
+    <delete id="deleteName">
+        delete from tm_option where id = #{codes}
+    </delete>
+
+    </mapper>

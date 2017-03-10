@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.linetheme.LineThemeMapper" >
+
+    <!-- 根据条件获取所有线路主题信息 -->
+    <select id="getAllLineThemeList" resultType="com.beautifulchina.linetheme.pojo.LineTheme" parameterType="com.beautifulchina.linetheme.bo.LineThemeBO">
+        	select id,
+            <if test="language == 'en'">
+                title_en title,
+            </if>
+            <if test="language == 'fr'">
+                title_fr title,
+            </if>
+            title_en titleEn,
+            title_fr titleFr,
+            desc_en descEn,
+            desc_fr descFr,
+            photo_one photoOne,
+            photo_two photoTwo,
+            photo_three photoThree,
+            photo_four photoFour
+            from tm_theme
+			<include refid="sqlWhere"></include>
+            ORDER BY id desc
+    </select>
+    <sql id="sqlWhere">
+        <where>
+            <if test="title != null and title != '' and language == 'en'">
+                and title_en like CONCAT('%',#{title},'%')
+            </if>
+            <if test="title != null and title != '' and language == 'fr'">
+                and title_fr like CONCAT('%',#{title},'%')
+            </if>
+        </where>
+
+    </sql>
+
+    <!-- 查询线路主题信息数量 -->
+    <select id="getAllLineThemeListCount" resultType="int" parameterType="com.beautifulchina.linetheme.bo.LineThemeBO">
+        select count(*)
+         from tm_theme
+         <include refid="sqlWhere"/>
+    </select>
+
+    <!-- 保存线路主题信息-->
+    <insert id="save" parameterType="com.beautifulchina.linetheme.bo.LineThemeBO">
+        insert into tm_theme (
+        title_en,
+        title_fr,
+        desc_en,
+        desc_fr,
+        photo_one,
+        photo_two,
+        photo_three,
+        photo_four)
+        values (
+        #{titleEn},
+        #{titleFr},
+        #{descEn},
+        #{descFr},
+        #{photoOne},
+        #{photoTwo},
+        #{photoThree},
+        #{photoFour})
+    </insert>
+
+    <!-- 更新线路主题信息 -->
+    <update id="update" parameterType="com.beautifulchina.linetheme.bo.LineThemeBO">
+      update tm_theme
+        <trim prefix="SET" suffixOverrides=",">
+              <if test="titleEn != null">
+                  title_en = #{titleEn},
+              </if>
+              <if test="titleFr != null">
+                  title_fr = #{titleFr},
+              </if>
+              <if test="descEn != null">
+                  desc_en = #{descEn},
+              </if>
+              <if test="descFr != null">
+                  desc_fr = #{descFr},
+              </if>
+              <if test="photoOne != null">
+                  photo_one = #{photoOne},
+              </if>
+              <if test="photoTwo != null">
+                  photo_two = #{photoTwo},
+              </if>
+              <if test="photoThree != null">
+                  photo_three = #{photoThree},
+              </if>
+              <if test="photoFour != null">
+                  photo_four = #{photoFour}
+              </if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <delete id="delete">
+      delete from tm_theme where id in
+        <foreach item="ids" index="index" collection="list" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </delete>
+
+    <!--根据id获取图片名称-->
+    <select id="getPhotoNameById" resultType="map">
+        select photo_one,photo_two,photo_three,photo_four from tm_theme where id in
+        <foreach item="ids" index="index" collection="list" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </select>
+
+    <!--修改主题图片-->
+    <update id="updPhoto" parameterType="com.beautifulchina.linetheme.bo.LineThemeDeletePhotoBO">
+        update tm_theme
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="photoOne != null">
+                photo_one = "",
+            </if>
+            <if test="photoTwo != null">
+                photo_two = "",
+            </if>
+            <if test="photoThree != null">
+                photo_three = "",
+            </if>
+            <if test="photoFour != null">
+                photo_four = "",
+            </if>
+        </trim>
+        where id=#{id}
+    </update>
+</mapper>

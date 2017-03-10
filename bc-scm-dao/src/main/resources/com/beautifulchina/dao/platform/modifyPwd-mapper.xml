@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.platform.ModifyPwdMapper" >
+    <!--按照邮箱地址查询用户-->
+    <select id="getUserByEmail" parameterType="java.lang.String" resultMap="result">
+        select * from ts_platform where email=#{email}
+    </select>
+    <!--用户表更新随机码和操作时间-->
+    <update id="saveAuthcode" parameterType="java.util.Map">
+        UPDATE ts_platform SET authcode=#{authcode},operatetime=#{operatetime} WHERE id=#{id}
+    </update>
+
+    <!--根据邮件提示的参数id和随机码查询是否存在该邮件-->
+    <select id="selectByAuthcode" parameterType="java.util.Map" resultMap="result">
+        select * from ts_platform WHERE id=#{id} AND authcode=#{authcode}
+    </select>
+    <!--根据id重置密码-->
+    <update id="resetPasswordByLoginName" parameterType="com.beautifulchina.platform.vo.PlatformVO">
+        UPDATE ts_platform set pwd=#{password},psw=#{psw} WHERE loginname=#{loginName}
+    </update>
+
+    <resultMap id="result" type="com.beautifulchina.platform.bo.PlatformBO">
+        <result column="pwd" property="password"/>
+        <result column="loginname" property="loginName"/>
+    </resultMap>
+</mapper>

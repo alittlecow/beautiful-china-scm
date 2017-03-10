@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.attribute.AttributeMapper" >
+
+
+
+    <!-- 根据条件获取所有属性信息 -->
+    <select id="getAll" resultType="com.beautifulchina.attribute.bo.AttributeBO" parameterType="com.beautifulchina.attribute.vo.AttributeVO">
+           SELECT t1.id categoryId,
+                   t2.id attributeId,
+        <if test="language=='en'">
+            t1.name_en categoryName,
+            t2.name_en attributeName,
+        </if>
+        <if test="language=='fr'">
+            t1.name_fr categoryName,
+            t2.name_fr attributeName,
+        </if>
+                   t1.name_en categoryNameEn,
+                   t2.name_en attributeNameEn,
+                   t2.name_fr attributeNameFr,
+                   t2.sort sort
+        FROM tm_category t1
+        RIGHT JOIN tm_cate_attribute t2 on t1.code=t2.cate_code
+        <include refid="where"></include>
+        ORDER BY t2.id DESC
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+
+
+    </select>
+
+    <sql id="where">
+        <where>
+            <if test="categoryId!=null and categoryId!=''">
+                and t1.id=#{categoryId}
+            </if>
+            <if test="attributeNameEn!=null and attributeNameEn!=''">
+                and t2.name_en like CONCAT('%', #{attributeNameEn},'%') OR t2.name_fr like CONCAT('%', #{attributeNameEn},'%')
+            </if>
+        </where>
+    </sql>
+
+    <!-- 获取属性信息总数 -->
+    <select id="getAttributeCount" resultType="int" parameterType="com.beautifulchina.attribute.vo.AttributeVO">
+        SELECT COUNT(*) FROM tm_category t1 RIGHT JOIN tm_cate_attribute t2 on t1.code=t2.cate_code
+        <include refid="where"/>
+    </select>
+
+    <!--保存新增的属性名称-->
+    <insert id="saveAttribute" parameterType="com.beautifulchina.attribute.vo.AddAttrVO">
+        INSERT INTO tm_cate_attribute(sort,name_en,name_fr,cate_code) values(#{sort},#{attributeNameEn},#{attributeNameFr},
+        (SELECT code FROM tm_category where id=#{id})
+        )
+
+    </insert>
+
+    <!--更新属性-->
+    <update id="updateAttribute" parameterType="com.beautifulchina.attribute.vo.AttributeVO">
+        update tm_cate_attribute
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="attributeNameEn != null">
+                name_en = #{attributeNameEn},
+            </if>
+            <if test="attributeNameFr != null">
+                name_fr = #{attributeNameFr},
+            </if>
+            <if test="sort != null">
+                sort = #{sort},
+            </if>
+        </trim>
+        where id=#{attributeId}
+    </update>
+
+    <!--获取所有属性值-->
+    <select id="getAllAttributeValue" resultType="com.beautifulchina.attributevalue.bo.AttributeValueBO" parameterType="com.beautifulchina.attribute.vo.AttributeVO">
+        select
+         id,
+         attr_id attrId,
+        <if test="language=='en'">
+            value_en attributeValue,
+        </if>
+        <if test="language=='fr'">
+            value_fr attributeValue,
+        </if>
+         value_en valueEn,
+         value_fr valueFr,
+         sort
+         FROM
+         tm_attribute_value
+         <where>
+             <if test="attributeId != null">
+                 attr_id = #{attributeId},
+             </if>
+         </where>
+        ORDER BY id
+    </select>
+
+    <!--获取属性值列表-->
+    <select id="getAttrValueList" parameterType="java.util.Map" resultType="com.beautifulchina.attributevalue.bo.AttributeValueBO">
+        select
+        <if test="language == 'en'">
+            value_en value,
+        </if>
+        <if test="language == 'fr'">
+            value_fr value,
+        </if>
+         id,
+         attr_id attrId,
+         value_en valueEn,
+         value_fr valueFr,
+         sort
+         FROM
+         tm_attribute_value WHERE attr_id=#{attrId}
+    </select>
+
+    <!-- 删除属性信息 -->
+    <delete id="deleteAttribute">
+        delete from tm_cate_attribute where id=#{id}
+    </delete>
+
+    <!-- 根据id删除属性值信息 -->
+    <delete id="deleteAttrValue">
+        delete from tm_attribute_value where id in
+        <foreach item="ids" index="index" collection="list" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </delete>
+
+    <!-- 根据属性id删除属性值信息 -->
+    <delete id="deleteAttributeValue">
+        delete from tm_attribute_value where attr_id=#{id}
+    </delete>
+
+    <!--新增属性值-->
+    <insert id="addAttrValue" parameterType="com.beautifulchina.attributevalue.bo.AttributeValueBO">
+         INSERT INTO tm_attribute_value(value_en,value_fr,attr_Id,sort) values(#{valueEn},#{valueFr},
+         #{attrId},#{sort})
+    </insert>
+
+    <!--更新属性值-->
+    <update id="updateAttrValue" parameterType="com.beautifulchina.attributevalue.bo.AttributeValueBO">
+        UPDATE tm_attribute_value
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="valueEn != null">
+                value_en = #{valueEn},
+            </if>
+            <if test="valueFr != null">
+                value_fr = #{valueFr},
+            </if>
+            <if test="sort != null">
+                sort = #{sort},
+            </if>
+        </trim>
+        where id = #{id}
+    </update>
+</mapper>

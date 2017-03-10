@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.dlmanage.DLManageMapper" >
+    <!--获取部门信息-->
+    <select id="getDLMList" parameterType="com.beautifulchina.dlmanage.vo.LevelVO" resultType="com.beautifulchina.dlmanage.pojo.Level">
+        select
+        level_code code,
+        <if test="language=='en'">
+            level_name_en name,
+        </if>
+        <if test="language=='fr'">
+            level_name_fr name,
+        </if>
+        level_name_en enName,
+        level_name_fr fnName,
+        level_parent supCode,
+        operate_time operateTime,
+        pass_loginname operating
+        from ts_level
+        <include refid="where"></include>
+        ORDER BY level_code
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+
+    </select>
+    <sql id="where">
+        <where>
+            <if test="code!=null">
+                level_code like CONCAT('%',#{code},'%')
+            </if>
+            <if test="name!=null and name!='' and language=='en'">
+                and level_name_en like CONCAT('%',#{name},'%')
+            </if>
+            <if test="name!=null and name!='' and language=='fr'">
+                and level_name_fr like CONCAT('%',#{name},'%')
+            </if>
+        </where>
+    </sql>
+    <!--分页用部门数量-->
+    <select id="getCount" parameterType="com.beautifulchina.dlmanage.vo.LevelVO" resultType="int">
+        SELECT count(*) from ts_level <include refid="where"></include>
+    </select>
+    <delete id="deleteDepartmentLevelByCode">
+        delete from ts_level where level_code in
+        <foreach item="code" index="index" collection="list" open="(" separator="," close=")">
+            #{code}
+        </foreach>
+    </delete>
+    <!--增加部门信息-->
+    <insert id="addDepartmentLevel" parameterType="com.beautifulchina.dlmanage.vo.LevelVO">
+        insert into ts_level
+        (level_code ,
+        level_name_en ,
+        level_name_fr ,
+        level_parent ,
+        operate_time ,
+        pass_loginname )
+        values
+        (#{code},
+        #{enName},
+        #{fnName},
+        #{supCode},
+        #{operateTime},
+        #{operating})
+    </insert>
+    <!--更新部门信息-->
+    <update id="updateDepartmentLevel" parameterType="com.beautifulchina.dlmanage.vo.LevelVO">
+        update ts_level
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="enName != null">
+                level_name_en = #{enName},
+            </if>
+            <if test="fnName != null">
+                level_name_fr = #{fnName},
+            </if>
+            <if test="operateTime != null">
+                operate_time = #{operateTime},
+            </if>
+            <if test="operating != null">
+                pass_loginname = #{operating}
+            </if>
+        </trim>
+        where level_code=#{code}
+    </update>
+    <!--获取上级代码-->
+    <select id="getSupCode" resultType="String">
+        select level_code supCode from ts_level
+    </select>
+</mapper>

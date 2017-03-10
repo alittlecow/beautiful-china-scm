@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.tourdate.TourDateMapper">
+    <!-- 根据条件获取出发线路数据-->
+    <select id="getTourDate" resultType="com.beautifulchina.tourdate.pojo.TourDate"
+            parameterType="com.beautifulchina.tourdate.bo.TourDateBO">
+        select trd_id id,tour_id code,trd_time time,trd_price price,trd_inventory inventory,
+        trd_sales sales,trd_pending pending,trd_remain remain,trd_warn warn,
+        <if test="language=='en'">
+            title_en title
+        </if>
+        <if test="language=='fr'">
+            title_fr title
+        </if>
+        from tm_tourdate t1 left join tm_tour t2 on t2.id=t1.tour_id
+        <include refid="where"></include>
+        order by t1.trd_id desc
+        limit #{start},#{limit}
+    </select>
+    <sql id="where">
+        <where>
+            <if test="id!=null">
+                and id =#{id}
+            </if>
+            <if test="titleEn!=null">
+                and title_en like CONCAT('%',#{titleEn},'%')
+            </if>
+            <if test="titleFr!=null">
+                and title_fr like CONCAT('%',#{titleFr},'%')
+            </if>
+            <if test="warning!=null">
+                <if test="warning=='Y'.toString()">
+                    and trd_inventory &lt;= trd_warn
+                </if>
+                <if test="warning=='N'.toString()">
+                    and trd_inventory &gt; trd_warn
+                </if>
+            </if>
+            <if test="inventoryTo!=null">
+                and trd_inventory &lt;= #{inventoryTo}
+            </if>
+            <if test="salesTo!=null">
+                and trd_sales &lt;= #{salesTo}
+            </if>
+            <if test="remainTo!=null">
+                and trd_remain &lt;= #{remainTo}
+            </if>
+            <if test="inventoryFrom!=null">
+                and trd_inventory &gt;= #{inventoryFrom}
+            </if>
+            <if test="salesFrom!=null">
+                and trd_sales &gt;= #{salesFrom}
+            </if>
+            <if test="remainFrom!=null">
+                and trd_remain &gt;= #{remainFrom}
+            </if>
+        </where>
+    </sql>
+    <!--根据条件获取出发线路数据数量-->
+    <select id="getCount" parameterType="com.beautifulchina.tourdate.bo.TourDateBO" resultType="int">
+        select count(*) from tm_tourdate t1 left join tm_tour t2 on t2.id=t1.tour_id
+        <include refid="where"></include>
+    </select>
+    <!--根据id删除出发线路数据-->
+    <delete id="delete">
+        delete from tm_tourdate where trd_id in
+        <foreach item="id" index="index" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <!--获取线路名称-->
+    <select id="getTitle" resultType="map" parameterType="com.beautifulchina.tourdate.bo.TourDateQueryBO">
+        select t1.id,
+        <if test="language=='fr'">
+            concat(t1.title_fr ,'-',t1.code,'-',t2.name_fr) titleEn
+        </if>
+        <if test="language!='fr'">
+            concat(t1.title_en ,'-',t1.code,'-',t2.name_en) titleEn
+        </if>
+        from tm_tour t1
+        left join tm_city t2 on t1.startcity=t2.id
+        <include refid="idwhere"></include>
+        ORDER BY t1.id
+    </select>
+    <sql id="idwhere">
+        <where>
+            <if test="idList!=null">
+                and t1.id in
+                <foreach item="id" index="index" collection="idList" open="(" separator="," close=")">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+    </sql>
+    <!--新增线路出团信息-->
+    <insert id="addTourDate" parameterType="com.beautifulchina.tourdate.bo.TourDateBO">
+        insert into tm_tourdate
+        (tour_id,trd_time,trd_price,trd_inventory,trd_sales,trd_pending,trd_remain,trd_warn)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.code},#{item.time},#{item.price},#{item.inventory},
+            #{item.sales},#{item.pending},#{item.remain},#{item.warn})
+        </foreach>
+    </insert>
+    <!--更新线路出团信息-->
+    <update id="upDateTourDate" parameterType="com.beautifulchina.tourdate.bo.TourDateBO">
+        update tm_tourdate
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="time != null">
+                trd_time = #{time},
+            </if>
+            <if test="price != null">
+                trd_price = #{price},
+            </if>
+            <if test="inventory != null">
+                trd_inventory = #{inventory},
+            </if>
+            <if test="warn  != null">
+                trd_warn = #{warn },
+            </if>
+        </trim>
+        where trd_id=#{id}
+    </update>
+    <!--获取用户路线id-->
+    <select id="getTourId" parameterType="string" resultType="int">
+        select id from tm_tour where dept_code=#{deptCode}
+    </select>
+</mapper>

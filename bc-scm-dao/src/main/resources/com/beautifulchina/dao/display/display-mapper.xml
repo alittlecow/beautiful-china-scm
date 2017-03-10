@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.display.DisplayMapper">
+
+    <resultMap id="display" type="com.beautifulchina.display.pojo.Display">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="position" property="position"/>
+        <result column="code" property="code"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <!--&lt;!&ndash; 获取出团信息列表 &ndash;&gt;-->
+    <select id="selectTourDate" resultType="com.beautifulchina.display.pojo.Display"
+            parameterType="com.beautifulchina.display.bo.DisplayBO">
+        select
+        t1.trd_price trdPrice,
+        t2.id id,
+        <if test="language=='fr'">
+            t2.title_fr titleEn,
+        </if>
+        <if test="language!='fr'">
+            t2.title_en titleEn,
+        </if>
+        t2.code code,
+        t3.name_en supName
+        from tm_tourdate t1
+        left join tm_tour t2 on t1.tour_id =t2.id
+        left join ts_supplier t3 on t2.dept_code=t3.dept_code
+        <include refid="sqlWhere"></include>
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+
+    </select>
+
+    <sql id="sqlWhere">
+        <where>
+            <if test="titleEn != null and titleEn != ''">
+                and title_en like CONCAT('%',#{titleEn},'%')
+            </if>
+            <if test="code != null and code != ''">
+                and code =#{code}
+            </if>
+            <if test="supName != null and supName != ''">
+                and name_en like CONCAT('%',#{supName},'%')
+            </if>
+        </where>
+        group by t2.id
+    </sql>
+
+    <!--&lt;!&ndash; 获取出团信息总数 &ndash;&gt;-->
+    <select id="selectTourDateCount" resultType="int" parameterType="com.beautifulchina.display.bo.DisplayBO">
+        select count(*) from
+        (select t1.tour_id from tm_tourdate t1
+        left join tm_tour t2 on t1.tour_id =t2.id
+        left join ts_supplier t3 on t2.dept_code=t3.dept_code
+        <include refid="sqlWhere"></include>
+        ) t
+    </select>
+    <!--根据id获取路线图片-->
+    <select id="selectTourImages" parameterType="int" resultType="string">
+        select image_url from tm_tour_image
+        where tour_id=#{id} and orders!=(-1)
+    </select>
+
+    <!--获取banner配置-->
+    <select id="selectDisplayBanner" resultType="com.beautifulchina.indexconfig.pojo.IndexConfig">
+        select
+        id,itemid itemId,image,sort
+        from tm_indexconfig
+        where type='banner'
+        order by sort
+    </select>
+    <!--获取tour配置-->
+    <select id="selectDisplayTour" resultType="com.beautifulchina.indexconfig.pojo.IndexConfig">
+        select
+        t1.id ids,t1.itemid itemId,t1.image,t1.sort,
+        <if test="language=='fr'">
+            t2.title_fr name
+        </if>
+        <if test="language!='fr'">
+            t2.title_en name
+        </if>
+        from tm_indexconfig t1
+        left join tm_tour t2 on t1.itemid=t2.id
+        where type='popular'
+        order by t1.sort
+    </select>
+    <!--获取trip配置-->
+    <select id="selectDisplayTrip" resultType="com.beautifulchina.indexconfig.pojo.IndexConfig">
+        select
+        t1.id ids,t1.itemid itemId,t1.image,t1.sort,
+        <if test="language=='fr'">
+            t2.title_fr name
+        </if>
+        <if test="language!='fr'">
+            t2.title_en name
+        </if>
+        from tm_indexconfig t1
+        left join tm_tour t2 on t1.itemid=t2.id
+        where type='firstTrip'
+        order by t1.sort
+    </select>
+    <!--获取theme配置-->
+    <select id="selectDisplayTheme" resultType="com.beautifulchina.indexconfig.pojo.IndexConfig">
+        select
+        t1.id ids,t1.itemid itemId,t1.image,t1.sort,
+        <if test="language=='fr'">
+            t2.title_fr name
+        </if>
+        <if test="language!='fr'">
+            t2.title_en name
+        </if>
+        from tm_indexconfig t1
+        left join tm_theme t2 on t1.itemid=t2.id
+        where type='theme'
+        order by t1.sort
+    </select>
+
+    <!--获取city配置-->
+    <select id="selectDisplayCity" resultType="com.beautifulchina.indexconfig.pojo.IndexConfig">
+        select
+        t1.id ids,t1.itemid itemId,t1.image,t1.sort,
+        <if test="language=='fr'">
+            t2.name_fr name
+        </if>
+        <if test="language!='fr'">
+            t2.name_en name
+        </if>
+        from tm_indexconfig t1
+        left join tm_city t2 on t1.itemid=t2.id
+        where type='city'
+        order by t1.sort
+    </select>
+
+    <!--新增配置-->
+    <insert id="insertItemData" parameterType="com.beautifulchina.indexconfig.bo.IndexConfigBO">
+        insert into tm_indexconfig
+        (itemid, type, image, sort)
+        values
+        (#{itemId},#{type},#{image},#{sort})
+    </insert>
+    <!--修改配置-->
+    <update id="updateItemData" parameterType="com.beautifulchina.indexconfig.bo.IndexConfigBO">
+        update tm_indexconfig
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="itemId!=null">
+                itemid=#{itemId},
+            </if>
+            <if test="type!=null">
+                type=#{type},
+            </if>
+            <if test="image!=null">
+                image=#{image},
+            </if>
+            <if test="sort!=null">
+                sort=#{sort},
+            </if>
+        </trim>
+        where id=#{id}
+    </update>
+    <!--获取页面配置所有图片-->
+    <select id="selectAllImages" resultType="string">
+        select image from tm_indexconfig
+    </select>
+    <!--根据type获取itemId-->
+    <select id="selectItemIdByType" resultType="int">
+        select itemid from tm_indexconfig where type=#{type}
+        <if test="id!=null">
+            and id!=#{id}
+        </if>
+    </select>
+</mapper>

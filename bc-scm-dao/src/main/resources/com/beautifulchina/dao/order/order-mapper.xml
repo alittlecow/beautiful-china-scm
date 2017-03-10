@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.order.OrderMapper">
+
+
+    <!-- 根据条件获取所有订单信息 -->
+    <select id="getOrderList" resultType="com.beautifulchina.order.pojo.Order" parameterType="com.beautifulchina.order.bo.OrderBO">
+        select
+        t1.orderno orderNo,
+        t1.contact contact,
+        t1.email email,
+        t1.dept_id deptId,
+        <if test="language=='en'">
+            t2.title_en tourName,
+        </if>
+        <if test="language=='fr'">
+            t2.title_fr tourName,
+        </if>
+        t2.id tourId,
+        t3.id userId,
+        t3.nickname userName,
+        t1.tel telephone,
+        t1.adults adults,
+        t1.children children,
+        t1.room room,
+        t1.departure departure,
+        t1.state state,
+        t1.total total,
+        t1.placedtime placedTime
+        from tb_order t1
+        left join
+        tm_tour t2 on t1.tour_id = t2.id
+        left join
+        ts_user t3 on t1.user_id = t3.id
+        left join
+        ts_dept t4 on t1.dept_id = t4.dept_id
+        <include refid="sqlWhere"></include>
+        ORDER BY t1.orderno
+    </select>
+    <sql id="sqlWhere">
+        <where>
+            <if test="orderNo != null and orderNo != ''">
+                and t1.orderno like CONCAT('%',#{orderNo},'%')
+            </if>
+            <if test="state != null and state != ''">
+                and state =#{state}
+            </if>
+            <if test="placedFrom != null and placedFrom != '' and placedTo != null and placedTo != '' ">
+                and placedtime BETWEEN  #{placedFrom} and #{placedTo}
+            </if>
+            <if test="levelCode=='SUPPLIER'">
+                and t1.dept_id = #{deptId}
+            </if>
+        </where>
+    </sql>
+    <!-- 查询订单信息数量 -->
+    <select id="getOrderListCount" resultType="int" parameterType="com.beautifulchina.order.bo.OrderBO">
+        select count(*)
+        from tb_order t1
+        left join
+        tm_tour t2 on t1.tour_id = t2.id
+        left join
+        ts_user t3 on t1.user_id = t3.id
+        left join
+        ts_dept t4 on t1.dept_id = t4.dept_id
+        <include refid="sqlWhere"/>
+    </select>
+
+    <!-- 根据订单号获取订单历史信息 -->
+    <select id="getOrderHistoryList" resultType="com.beautifulchina.order.pojo.OrderHistory" parameterType="com.beautifulchina.order.bo.OrderBO">
+        select
+        t1.id id,
+        t1.orderno orderNo,
+        t1.contact contact,
+        t1.email email,
+        <if test="language=='en'">
+            t2.title_en tourName,
+        </if>
+        <if test="language=='fr'">
+            t2.title_fr tourName,
+        </if>
+        t2.id tourId,
+        t3.id userId,
+        t3.name userName,
+        t1.tel telephone,
+        t1.adults adults,
+        t1.children children,
+        t1.room room,
+        t1.departure departure,
+        t1.state state,
+        t1.total total,
+        t1.placedtime placedTime,
+        t1.operatetime operateTime,
+        t4.loginname operator
+
+        from th_order t1
+        left join
+        tm_tour t2 on t1.tour_id = t2.id
+        left join
+        ts_user t3 on t1.user_id = t3.id
+        left join
+        ts_platform t4 on t1.pass_id = t4.id
+        left join
+        ts_dept t5 on t1.dept_id = t5.dept_id
+        where t1.orderno=#{orderNo}
+        ORDER BY t1.id
+    </select>
+
+    <!-- 查询订单历史信息数量 -->
+    <select id="getOrderHistoryListCount" resultType="int" parameterType="com.beautifulchina.order.bo.OrderBO">
+        select count(*)
+        from th_order
+        where orderno=#{orderNo}
+    </select>
+
+
+    <!-- 更新订单信息 -->
+    <update id="update" parameterType="com.beautifulchina.order.bo.OrderBO">
+        update tb_order
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="contact != null and contact != ''">
+                contact = #{contact},
+            </if>
+            <if test="email != null and email != ''">
+                email = #{email},
+            </if>
+            <if test="telephone != null and telephone != ''">
+                tel = #{telephone},
+            </if>
+            <if test="adults != null and adults != ''">
+                adults = #{adults},
+            </if>
+            <if test="children != null and children != ''">
+                children = #{children},
+            </if>
+            <if test="room != null and room != ''">
+                room = #{room},
+            </if>
+            <if test="departure != null and departure != ''">
+                departure = #{departure},
+            </if>
+            <if test="state != null and state != ''">
+                state = #{state},
+            </if>
+            <if test="total != null and total != ''">
+                total = #{total},
+            </if>
+            <if test="placedTime != null and placedTime != ''">
+                placedTime = #{placedTime}
+            </if>
+        </trim>
+        where orderno = #{orderNo}
+    </update>
+
+    <update id="updateHistory" parameterType="com.beautifulchina.order.bo.OrderBO">
+        update th_order
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="contact != null and contact != ''">
+                contact = #{contact},
+            </if>
+            <if test="email != null and email != ''">
+                email = #{email},
+            </if>
+            <if test="telephone != null and telephone != ''">
+                tel = #{telephone},
+            </if>
+            <if test="adults != null and adults != ''">
+                adults = #{adults},
+            </if>
+            <if test="children != null and children != ''">
+                children = #{children},
+            </if>
+            <if test="room != null and room != ''">
+                room = #{room},
+            </if>
+            <if test="departure != null and departure != ''">
+                departure = #{departure},
+            </if>
+            <if test="state != null and state != ''">
+                state = #{state},
+            </if>
+            <if test="total != null and total != ''">
+                total = #{total},
+            </if>
+            <if test="placedTime != null and placedTime != ''">
+                placedTime = #{placedTime}
+            </if>
+        </trim>
+        where orderno = #{orderNo}
+    </update>
+
+
+    <!-- 保存订单历史记录 -->
+    <insert id="saveOrderHistory" parameterType="com.beautifulchina.order.bo.OrderBO">
+        insert into th_order (
+       orderno,user_id,contact,email,tel,dept_id,tour_id,adults,children,
+       room,departure,total,state,placedtime,point,gross,net,tax,operatetime,pass_id)
+        values (
+        #{orderNo},#{userId},#{contact},#{email},#{telephone},#{deptId},#{tourId},
+        #{adults},#{children},#{room},#{departure},#{total},#{state},
+        #{placedTime},#{point},#{gross},#{net},#{tax},#{operateTime},#{passId})
+    </insert>
+
+    <!-- 根据订单号关联客户信息 -->
+    <select id="getOrderPassenger" resultType="com.beautifulchina.order.pojo.OrderPassenger" parameterType="com.beautifulchina.order.bo.OrderBO">
+    select fullname fullname,
+            sex sex,
+            nationality nationality,
+            passport passport,
+            phone phone,
+            type type
+    from tb_order_passenger
+    where orderno = #{orderNo}
+    </select>
+
+    <!--根据路线id删除选项值配置-->
+    <delete id="deleteOrderOptionValue" >
+        delete from tb_orderdetail where orderno= #{orderNo} and  type='O'
+    </delete>
+
+    <insert id="insertOrderOptionValue">
+        insert into tb_orderdetail
+        (orderno, type, valueid,upgrade,price,totalprice)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.orderNo},#{item.type},#{item.valueId},#{item.upgrade},#{item.price},#{item.totalPrice})
+        </foreach>
+
+    </insert>
+
+    <!-- 获取订单原选项价格 -->
+    <select id="getPlusPrice" resultType="double" >
+        select sum(price)
+        from tb_orderdetail
+        where orderno=#{orderNo} and type='O'
+    </select>
+</mapper>

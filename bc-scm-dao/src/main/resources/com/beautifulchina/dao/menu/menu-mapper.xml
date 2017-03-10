@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.menu.MenuMapper">
+
+    <!-- 根据用户编号获取拥有的菜单权限 -->
+    <select id="getMenuList" resultType="com.beautifulchina.menu.pojo.Menu">
+        select
+        t1.menu_code code,
+        <if test="language== 'en'||language== 'zh'">
+            t1.menu_name_en menuName,
+        </if>
+        <if test="language== 'fr'">
+            t1.menu_name_fr menuName,
+        </if>
+        t1.menu_link link,
+        t1.module_code moduleCode,
+        t1.menu_notes menuNotes
+        from ts_menu t1
+        left join ts_rolemenu t2
+        on t1.menu_code = t2.menu_code
+        where t1.status = 'N'
+        and t1.module_code = #{moduleId}
+        and t2.role_code = #{roleCode}
+        ORDER BY t1.menu_code
+    </select>
+
+    <!-- 根据条件获取所有菜单信息 -->
+    <select id="getAllMenuList" resultType="com.beautifulchina.menu.pojo.Menu"
+            parameterType="com.beautifulchina.menu.bo.MenuBO">
+        select t1.menu_code code,
+        t1.menu_name_en enName,
+        t1.menu_name_fr frName,
+        t1.menu_link link,
+        <if test="language=='en'">
+            t1.menu_name_en menuName,
+            t2.plate_name_en plateName,
+            t3.module_name_en moduleName,
+        </if>
+        <if test="language=='fr'">
+            t1.menu_name_fr menuName,
+            t2.plate_name_fr plateName,
+            t3.module_name_fr moduleName,
+        </if>
+        t1.plate_code plateCode,
+        t2.plate_name_en plateEnName,
+        t2.plate_name_fr plateFrName,
+        t1.module_code moduleCode,
+        t3.module_name_en moduleEnName,
+        t3.module_name_fr moduleFrName,
+        t1.menu_notes notes,
+        t1.menu_level level,
+        t1.menu_sort sort,
+        t1.status status
+        from ts_menu t1
+        left join ts_plate t2 on t1.plate_code = t2.plate_code
+        left join ts_module t3 on t1.module_code = t3.module_code
+        <include refid="sqlWhere"></include>
+        ORDER BY t1.menu_code
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+
+    </select>
+
+    <!-- 根据条件获取所有菜单信息 -->
+    <select id="getModuleByPlateCode" resultType="com.beautifulchina.menu.pojo.Menu"
+            parameterType="com.beautifulchina.menu.bo.MenuBO">
+        select
+        t1.module_code moduleCode,
+        <if test="language== 'en'||language== 'zh'">
+            t3.module_name_en moduleName
+        </if>
+        <if test="language== 'fr'">
+            t3.module_name_fr moduleName
+        </if>
+        from ts_menu t1
+        left join ts_plate t2 on t1.plate_code = t2.plate_code
+        left join ts_module t3 on t1.module_code = t3.module_code
+        <include refid="sqlWhere"></include>
+        group by t1.module_code
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+
+    </select>
+    <sql id="sqlWhere">
+        <where>
+            <if test="enName != null">
+                and (
+                t1.menu_name_en like CONCAT('%',#{enName},'%')
+                or
+                t1.menu_name_fr like CONCAT('%',#{enName},'%')
+                )
+            </if>
+            <if test="plateCode != null and plateCode != ''">
+                and t1.module_code like CONCAT('%',#{plateCode},'%')
+            </if>
+            <if test="moduleCode != null and moduleCode != ''">
+                and t1.module_code = #{moduleCode}
+            </if>
+        </where>
+
+    </sql>
+
+    <!-- 查询菜单数量 -->
+    <select id="getAllMenuListCount" resultType="int" parameterType="com.beautifulchina.menu.bo.MenuBO">
+        select count(*)
+        from ts_menu t1
+        <include refid="sqlWhere"/>
+    </select>
+
+    <!-- 保存菜单 -->
+    <insert id="save" parameterType="com.beautifulchina.menu.bo.MenuBO">
+        insert into ts_menu (
+        module_code,
+        menu_sort,
+        menu_level,
+        operate_time,
+        menu_link,
+        plate_code,
+        pass_loginname,
+        menu_name_en,
+        menu_name_fr,
+        menu_notes,
+        menu_code,
+        status)
+        values (
+        #{moduleCode},
+        #{sort},
+        #{level},
+        #{operateTime},
+        #{link},
+        #{plateCode},
+        #{operator},
+        #{enName},
+        #{frName},
+        #{notes},
+        #{code},
+        #{status})
+    </insert>
+
+    <!-- 更新菜单信息 -->
+    <update id="update" parameterType="com.beautifulchina.menu.bo.MenuBO">
+        update ts_menu
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="notes != null">
+                menu_notes = #{notes},
+            </if>
+            <if test="frName != null">
+                menu_name_fr = #{frName},
+            </if>
+            <if test="enName != null">
+                menu_name_en = #{enName},
+            </if>
+            <if test="operator != null">
+                pass_loginname = #{operator},
+            </if>
+            <if test="link != null">
+                menu_link = #{link},
+            </if>
+            <if test="operateTime != null">
+                operate_time = #{operateTime},
+            </if>
+            <if test="level != null">
+                menu_level = #{level},
+            </if>
+            <if test="sort != null">
+                menu_sort = #{sort},
+            </if>
+            <if test="moduleCode != null">
+                module_code = #{moduleCode},
+            </if>
+            <if test="plateCode != null">
+                plate_code = #{plateCode},
+            </if>
+        </trim>
+        where menu_code = #{code}
+    </update>
+
+    <delete id="delete">
+        delete from ts_menu where menu_code in
+        <foreach item="codes" index="index" collection="list" open="(" separator="," close=")">
+            #{codes}
+        </foreach>
+    </delete>
+</mapper>

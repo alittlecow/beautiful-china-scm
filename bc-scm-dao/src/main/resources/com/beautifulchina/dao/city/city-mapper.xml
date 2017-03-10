@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.city.CityMapper">
+
+
+    <!-- 根据条件获取所有城市信息 -->
+    <select id="getAllCityList" resultType="com.beautifulchina.city.pojo.City" parameterType="com.beautifulchina.city.bo.CityBO">
+        select id cityId,
+        <if test="language=='en'">
+        name_en cityName,
+        </if>
+        <if test="language=='fr'">
+        name_fr cityName,
+        </if>
+        name_en cityNameEn,
+        name_fr cityNameFr,
+        desc_en descEn,
+        desc_fr descFr,
+        photo_one photoOne,
+        photo_two photoTwo,
+        photo_three photoThree,
+        photo_four photoFour
+        from tm_city
+        <include refid="sqlWhere"></include>
+        order by id desc
+    </select>
+    <sql id="sqlWhere">
+        <where>
+            <if test="cityName != null and cityName != '' and language=='en'">
+                and  name_en like CONCAT('%',#{cityName},'%')
+            </if>
+            <if test="cityName != null and cityName != '' and language=='fr'">
+                and  name_fr like CONCAT('%',#{cityName},'%')
+            </if>
+        </where>
+    </sql>
+    
+    <!-- 查询城市信息数量 -->
+    <select id="getAllCityListCount" resultType="int" parameterType="com.beautifulchina.city.bo.CityBO">
+        select count(*)
+        from tm_city
+        <include refid="sqlWhere"/>
+    </select>
+
+    <!-- 保存城市信息-->
+    <insert id="save" parameterType="com.beautifulchina.city.bo.CityBO">
+        insert into tm_city (
+        name_en,
+        name_fr,
+        desc_en,
+        desc_fr,
+        photo_one,
+        photo_two,
+        photo_three,
+        photo_four )
+        values (
+        #{cityNameEn},
+        #{cityNameFr},
+        #{descEn},
+        #{descFr},
+        #{photoOne},
+        #{photoTwo},
+        #{photoThree},
+        #{photoFour})
+    </insert>
+
+    <!-- 更新城市信息 -->
+    <update id="update" parameterType="com.beautifulchina.city.bo.CityBO">
+        update tm_city
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="cityNameEn != null">
+                name_en = #{cityNameEn},
+            </if>
+            <if test="cityNameFr != null">
+                name_fr = #{cityNameFr},
+            </if>
+            <if test="descEn != null">
+                desc_en = #{descEn},
+            </if>
+            <if test="descFr != null">
+                desc_fr = #{descFr},
+            </if>
+            <if test="photoOne != null">
+                photo_one = #{photoOne},
+            </if>
+            <if test="photoTwo != null">
+                photo_two = #{photoTwo},
+            </if>
+            <if test="photoThree != null">
+                photo_three = #{photoThree},
+            </if>
+            <if test="photoFour != null">
+                photo_four = #{photoFour}
+            </if>
+        </trim>
+        where id = #{cityId}
+    </update>
+
+    <!-- 删除城市信息 -->
+    <delete id="delete">
+        delete from tm_city where id in
+        <foreach item="cityIds" index="index" collection="list" open="(" separator="," close=")">
+            #{cityIds}
+        </foreach>
+    </delete>
+
+    <!--根据id获取图片名称-->
+    <select id="getPhotoNameById" resultType="map">
+        select photo_one,photo_two,photo_three,photo_four from tm_city where id in
+        <foreach item="ids" index="index" collection="list" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </select>
+
+    <!--修改主题图片-->
+    <update id="updPhoto" parameterType="com.beautifulchina.linetheme.bo.LineThemeDeletePhotoBO">
+        update tm_city
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="photoOne != null">
+                photo_one = "",
+            </if>
+            <if test="photoTwo != null">
+                photo_two = "",
+            </if>
+            <if test="photoThree != null">
+                photo_three = "",
+            </if>
+            <if test="photoFour != null">
+                photo_four = "",
+            </if>
+        </trim>
+        where id=#{id}
+    </update>
+</mapper>

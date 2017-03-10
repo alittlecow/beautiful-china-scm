@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.1.xsd">
+
+	<mvc:default-servlet-handler />
+
+	<context:component-scan base-package="com.beautifulchina.controller" />
+
+	<!-- 启动Spring MVC的注解功能，完成请求和注解POJO的映射(已弃用) -->
+	<!--<bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter" />-->
+
+	<!-- JSP视图解析器,对模型视图名称的解析，即在模型视图名称添加前后缀  -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/view/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<mvc:annotation-driven validator="validator" conversion-service="conversion-service">
+		<mvc:message-converters>
+			<bean id="fastJsonHttpMessageConverter"
+				  class="com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter">
+				<property name="features">
+					<list>
+						<value>WriteMapNullValue</value>
+						<value>WriteDateUseDateFormat</value>
+						<value>WriteNullStringAsEmpty</value>
+					</list>
+				</property>
+				<property name="supportedMediaTypes">
+					<list>
+						<!-- IE10以下不支持application/json,会导致认为是流处理,因而进行下载 -->
+						<value>text/html;charset=UTF-8</value>
+						<value>application/json;charset=UTF-8</value>
+					</list>
+				</property>
+			</bean>
+			<bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter">
+				<property name="supportedMediaTypes">
+					<list>
+						<value>image/jpeg</value>
+						<value>image/png</value>
+						<value>image/x-icon</value>
+					</list>
+				</property>
+			</bean>
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+	<!-- 注册conversion-service 实现和自定义的类型转换器 -->
+	<bean id="conversion-service" class="org.springframework.format.support.FormattingConversionServiceFactoryBean" />
+
+
+	<!-- 以下 validator  ConversionService 在使用 mvc:annotation-driven 会 自动注册-->
+	<bean id="validator"
+		  class="org.springframework.validation.beanvalidation.LocalValidatorFactoryBean">
+		<property name="providerClass"  value="org.hibernate.validator.HibernateValidator"/>
+		<!-- 如果不加默认到 使用classpath下的 ValidationMessages.properties -->
+		<property name="validationMessageSource" ref="messageSource"/>
+	</bean>
+
+	<!-- 国际化实现方式 此处使用cookie -->
+	<bean id="localeResolver" class="org.springframework.web.servlet.i18n.CookieLocaleResolver">
+		<!-- 设置cookieName名称，可以根据名称通过js来修改设置，也可以像上面演示的那样修改设置，默认的名称为 类名+LOCALE（即：org.springframework.web.servlet.i18n.CookieLocaleResolver.LOCALE-->
+		<property name="cookieName" value="lang111"/>
+		<!-- 设置最大有效时间，如果是-1，则不存储，浏览器关闭后即失效，默认为Integer.MAX_INT-->
+		<!--<property name="cookieMaxAge" value="100000000"/>-->
+		<!-- 设置cookie可见的地址，默认是“/”即对网站所有地址都是可见的，如果设为其它地址，则只有该地址或其后的地址才可见-->
+		<property name="cookiePath" value="/"/>
+	</bean>
+
+	<!-- 国际化资源文件 -->
+	<bean id="messageSource"
+		  class="org.springframework.context.support.ReloadableResourceBundleMessageSource" >
+		<property name="fallbackToSystemLocale">
+			<value>false</value>
+		</property>
+		<!-- 国际化信息所在的文件名 -->
+		<property name="basenames">
+			<list>
+				<value>classpath:messages/messages</value>
+				<value>classpath:messages/page-config</value>
+				<value>classpath:messages/error-codes</value>
+			</list>
+		</property>
+		<property name="defaultEncoding" value="utf-8" />
+	</bean>
+
+	<!-- 拦截器 -->
+	<mvc:interceptors>
+
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<mvc:exclude-mapping path="/css/**"/>
+			<mvc:exclude-mapping path="/images/**"/>
+			<mvc:exclude-mapping path="/js/**"/>
+			<bean class="com.beautifulchina.interceptor.CookieLocaleInterceptor"/>
+		</mvc:interceptor>
+
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<mvc:exclude-mapping path="/assets/**"/>
+            <!--<mvc:exclude-mapping path="/app/**"/>-->
+            <mvc:exclude-mapping path="/login/platformLogin"/>
+			<mvc:exclude-mapping path="/resetPassword/uniqueEmail"/>
+			<mvc:exclude-mapping path="/resetPassword/sendEmail"/>
+			<mvc:exclude-mapping path="/resetPassword/reset"/>
+			<mvc:exclude-mapping path="/resetPassword"/>
+			<mvc:exclude-mapping path="/login"/>
+			<bean class="com.beautifulchina.interceptor.SecurityInterceptor">
+				<property name="redirectUrl">
+					<value>/login</value>
+				</property>
+			</bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+</beans>

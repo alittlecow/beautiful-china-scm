@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.syscfg.SysCfgMapper">
+    <!-- 获取系统配置信息-->
+    <select id="getAllSysCfgList" resultType="com.beautifulchina.syscfg.pojo.SysCfg"
+            parameterType="com.beautifulchina.syscfg.bo.SysCfgBO">
+        select id,t2.content name,t3.content value,group_code groupCode
+        from ts_systemconfig t1
+        left join ts_language t2 on t1.name=t2.uuid and t2.type=#{language}
+        left join ts_language t3 on t1.value=t3.uuid and t3.type=#{language}
+        <include refid="sqlWhere"></include>
+        ORDER BY id desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+
+    </select>
+    <sql id="sqlWhere">
+        <where>
+            <if test="name != null and name != ''">
+                and t2.content like CONCAT('%',#{name},'%')
+            </if>
+        </where>
+    </sql>
+    <!-- 查询系统配置数量 -->
+    <select id="getAllSysCfgListCount" resultType="int" parameterType="com.beautifulchina.syscfg.bo.SysCfgBO">
+        select count(*)
+        from ts_systemconfig t1
+        left join ts_language t2 on t1.name=t2.uuid and t2.type=#{language}
+        left join ts_language t3 on t1.value=t3.uuid and t3.type=#{language}
+        <include refid="sqlWhere"></include>
+    </select>
+
+    <!-- 更新系统配置信息 -->
+    <update id="update" parameterType="com.beautifulchina.syscfg.bo.SysCfgBO">
+        update ts_systemconfig
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="value != null">
+                value = #{value},
+            </if>
+            <if test="groupCode != null">
+                group_code = #{groupCode},
+            </if>
+            <if test="operateTime != null">
+                operatetime = #{operateTime},
+            </if>
+            <if test="operator != null">
+                operator = #{operator},
+            </if>
+        </trim>
+        where id=#{id}
+    </update>
+    <!--保存系统配置-->
+    <insert id="save" parameterType="com.beautifulchina.syscfg.bo.SysCfgBO">
+        insert into ts_systemconfig
+        (
+        name,
+        value,
+        group_code,
+        operatetime,
+        operator
+        )
+        values(
+        #{name},
+        #{value},
+        #{groupCode},
+        #{operateTime},
+        #{operator}
+        )
+    </insert>
+
+    <!-- 删除系统配置-->
+    <delete id="delete">
+        delete t1,t2,t3
+        from
+        ts_systemconfig t1
+        left join
+        ts_language t2 on t1.name=t2.uuid
+        left join
+        ts_language t3 on t1.value=t3.uuid
+        where id in
+        <foreach item="codes" index="index" collection="list" open="(" separator="," close=")">
+            #{codes}
+        </foreach>
+    </delete>
+    <!--根据id信息删除系统配置多语言信息-->
+    <delete id="deleteSysCfgLanguage" parameterType="int">
+        delete t2,t3
+        from ts_systemconfig t1
+        left join ts_language t2 on t1.name=t2.uuid
+        left join ts_language t3 on t1.value=t3.uuid
+        where id =#{id}
+    </delete>
+    <!-- 获取系统配置信息-->
+    <select id="getSysCfgById" resultType="map"
+            parameterType="com.beautifulchina.syscfg.bo.SysCfgBO">
+        select t2.content name,t3.content value
+        from ts_systemconfig t1
+        left join ts_language t2 on t1.name=t2.uuid and t2.type=#{language}
+        left join ts_language t3 on t1.value=t3.uuid and t3.type=#{language}
+        where t1.id=#{id}
+    </select>
+</mapper>

@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.supplier.SupplierMapper" >
+
+
+
+    <!-- 根据条件获取所有供应商用户 -->
+    <select id="getAllUser" resultType="com.beautifulchina.supplier.bo.SupplierBO"  parameterType="com.beautifulchina.supplier.vo.SupplierVO">
+        SELECT id id,
+        dept_code deptCode,
+        <if test="language=='en'">
+          name_en name,
+        </if>
+        <if test="language=='fr'">
+            name_fr name,
+        </if>
+        name_en nameEn,
+        name_fr nameFr,
+        address address,
+        tel tel,
+        tel2 tel2,
+        legal legal,
+        descr supDesc,
+        license license,
+        contact contact,
+        email email,
+        website website,
+        status status,
+        remark sRemark,
+        reason rReason,
+        regtime regtime,
+        approver,
+        approvetime approveTime
+        FROM ts_supplier
+        <include refid="sqlWhere"></include>
+        ORDER BY id DESC
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+
+    </select>
+
+    <sql id="sqlWhere">
+        <where>
+            <if test="name != null and name != '' and language=='en'">
+                and name_en like CONCAT('%',#{name},'%')
+            </if>
+            <if test="name != null and name != '' and language=='fr'">
+                and name_fr like CONCAT('%',#{name},'%')
+            </if>
+            <if test="status != null and status != ''">
+                and status=#{status}
+            </if>
+            <if test="deptCode != null and deptCode != ''">
+                and dept_code like CONCAT('%',#{deptCode},'%')
+            </if>
+
+        </where>
+
+    </sql>
+
+
+    <!-- 获取供应商用户总数 -->
+    <select id="getSupplierCount" resultType="int" parameterType="com.beautifulchina.supplier.vo.SupplierVO">
+        SELECT COUNT(*) FROM ts_supplier
+        <include refid="sqlWhere"/>
+    </select>
+
+
+    <!-- 更新更改后的供应商申请信息状态 -->
+    <update id="updateSupplier" parameterType="com.beautifulchina.supplier.bo.ApproveBO">
+        update ts_supplier
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="rReason != null and rReason!=''">
+                reason = #{rReason},
+            </if>
+            <if test="date != null and date!=''">
+                approvetime = #{date},
+            </if>
+            <if test="approver != null and approver!=''">
+                approver = #{approver},
+            </if>
+        </trim>
+        where id in
+        <foreach item="listIds" index="index" collection="listIds" open="(" separator="," close=")">
+            #{listIds}
+        </foreach>
+    </update>
+
+
+
+    <!-- 修改后供应商信息-->
+    <update id="update" parameterType="com.beautifulchina.supplier.pojo.Supplier">
+        update ts_supplier
+        <trim prefix="SET" suffixOverrides=",">
+
+            <if test="deptCode != null">
+                dept_code = #{deptCode},
+            </if>
+            <if test="nameEn != null">
+                name_en = #{nameEn},
+            </if>
+            <if test="nameFr != null">
+                name_fr = #{nameFr},
+            </if>
+            <if test="tel != null">
+                tel = #{tel},
+            </if>
+            <if test="tel2 != null">
+                tel2 = #{tel2},
+            </if>
+            <if test="legal != null">
+                legal = #{legal},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="contact != null">
+                contact = #{contact},
+            </if>
+            <if test="regTime != null">
+                regtime = #{regTime},
+            </if>
+            <if test="license != null">
+                license = #{license},
+            </if>
+            <if test="email != null">
+                email = #{email},
+            </if>
+            <if test="website != null">
+                website = #{website},
+            </if>
+            <if test="supDesc != null">
+                descr = #{supDesc},
+            </if>
+            <if test="address != null">
+                address = #{address},
+            </if>
+
+
+        </trim>
+        where id = #{id}
+    </update>
+
+
+    <!-- 新增供应商信息-->
+    <insert id="add" parameterType="com.beautifulchina.supplier.bo.SupplierBO">
+        insert into ts_supplier (
+        dept_code,
+        name_en,
+        name_fr,
+        tel,
+        tel2,
+        legal,
+        status,
+        contact,
+        regtime,
+        license,
+        email,
+        website,
+        descr,
+        address
+
+        )
+
+        values (
+        #{deptCode},
+        #{nameEn},
+        #{nameFr},
+        #{tel},
+        #{tel2},
+        #{legal},
+        #{status},
+        #{contact},
+        #{regTime},
+        #{license},
+        #{email},
+        #{website},
+        #{supDesc},
+        #{address}
+
+
+        )
+    </insert>
+    <select id="getSupplier" resultType="com.beautifulchina.supplier.bo.SupplierBO"  parameterType="com.beautifulchina.supplier.bo.SupplierBO">
+      SELECT id id,
+        dept_code deptCode,
+        name_en nameEn,
+        name_fr nameFr,
+        address address,
+        tel tel,
+        tel2 tel2,
+        legal legal,
+        descr supDesc,
+        license license,
+        contact contact,
+        email email,
+        website website,
+        status status,
+        remark sRemark,
+        reason rReason,
+        regtime regtime,
+        approver,
+        psw,
+        approvetime approveTime
+        FROM ts_supplier
+        where id=#{id}
+    </select>
+
+    <select id="getPasswordByDeptCode" resultType="string">
+        SELECT password  FROM ts_supplier WHERE dept_code=#{deptCode}
+    </select>
+
+    <select id="getLanguageByDeptCode" resultType="string">
+        SELECT language  FROM ts_supplier WHERE dept_code=#{deptCode}
+    </select>
+</mapper>

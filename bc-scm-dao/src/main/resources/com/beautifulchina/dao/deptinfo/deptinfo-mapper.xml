@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.deptinfo.DeptInfoMapper">
+    <!--获取部门树结构-->
+    <select id="getDept" resultType="com.beautifulchina.deptinfo.pojo.Dept"
+            parameterType="com.beautifulchina.deptinfo.vo.DeptVO">
+        select
+        dept_id id,dept_code deptCode,level_code levelCode,
+        <if test="language== 'en'||language== 'zh'">
+            dept_name_en deptName,
+        </if>
+        <if test="language== 'fr'">
+            dept_name_fr deptName,
+        </if>
+        dept_parent supDept,status,operate_time operateTime,pass_loginname operator
+        from ts_dept
+        <include refid="where"></include>
+        ORDER BY dept_id
+    </select>
+    <sql id="where">
+        <where>
+            <if test="supDept==null">
+                and dept_parent is null or dept_parent=''
+            </if>
+            <if test="supDept!=null">
+                and dept_parent=#{supDept}
+            </if>
+        </where>
+    </sql>
+    <!--根据部门id获取部门代码-->
+    <select id="getDeptCodeById" resultType="string" parameterType="map">
+        select dept_code deptCode from ts_dept where dept_id=#{id}
+    </select>
+
+    <select id="getAllDeptCodeAndDeptName" resultType="com.beautifulchina.deptinfo.bo.DeptBO"
+            parameterType="com.beautifulchina.deptinfo.bo.DeptBO">
+        select dept_code deptCode,
+        <if test="language== 'en'||language== 'zh'">
+            dept_name_en deptName
+        </if>
+        <if test="language== 'fr'">
+            dept_name_fr deptName
+        </if>
+        from ts_dept
+        <if test="roleLevel== '0001'">
+            where dept_id=#{id}
+        </if>
+    </select>
+    <!--根据获取部门信息-->
+    <select id="getDeptById" resultType="com.beautifulchina.deptinfo.pojo.Dept"
+            parameterType="com.beautifulchina.deptinfo.vo.DeptVO">
+        select dept_id id,dept_code deptCode,level_code levelCode,
+        dept_name_en deptNameEn,dept_name_fr deptNameFr,
+        dept_parent supDept,status,operate_time operateTime,pass_loginname operator
+        from ts_dept where dept_id=#{id}
+    </select>
+    <!--根据部门code获取部门信息-->
+    <select id="getDeptByCode" parameterType="string" resultType="com.beautifulchina.deptinfo.pojo.Dept">
+        select dept_id id,dept_code deptCode,level_code levelCode,
+        <if test="language== 'en'||language== 'zh'">
+            dept_name_en deptName,
+        </if>
+        <if test="language== 'fr'">
+            dept_name_fr deptName,
+        </if>
+        dept_parent supDept,
+        status from ts_dept where dept_parent=#{code}
+    </select>
+    <select id="getDeptCN" resultType="com.beautifulchina.deptinfo.pojo.Dept">
+        select
+        <if test="language== 'en'||language== 'zh'">
+            dept_name_en deptName,
+        </if>
+        <if test="language== 'fr'">
+            dept_name_fr deptName,
+        </if>
+        dept_code deptCode from ts_dept
+        <if test="levelCode!=null">
+            where level_code=#{levelCode}
+        </if>
+    </select>
+    <!--新增部门信息-->
+    <insert id="addDept" parameterType="com.beautifulchina.deptinfo.bo.DeptBO">
+        insert into ts_dept
+        (dept_code,level_code,dept_name_en,dept_name_fr,
+        dept_parent,status,operate_time,pass_loginname)
+        VALUES
+        (#{deptCode},#{levelCode},#{deptNameEn},#{deptNameFr},#{supDept},#{status},#{operateTime},#{operator})
+    </insert>
+    <!--根据id更新部门信息-->
+    <update id="editDept" parameterType="com.beautifulchina.deptinfo.bo.DeptBO">
+        update ts_dept
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="deptCode != null">
+                dept_code = #{deptCode},
+            </if>
+            <if test="levelCode != null">
+                level_code = #{levelCode},
+            </if>
+            <if test="deptNameEn != null">
+                dept_name_en = #{deptNameEn},
+            </if>
+            <if test="deptNameFr != null">
+                dept_name_fr = #{deptNameFr},
+            </if>
+            <if test="supDept != null">
+                dept_parent = #{supDept},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="operateTime != null">
+                operate_time = #{operateTime},
+            </if>
+            <if test="operator != null">
+                pass_loginname = #{operator}
+            </if>
+
+        </trim>
+        where dept_id=#{id}
+    </update>
+    <!--根据id删除节点-->
+    <delete id="delDeptById">
+        delete from ts_dept where dept_id in
+        <foreach item="id" index="index" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <!--获取所有部门信息-->
+    <select id="getDeptList" resultType="com.beautifulchina.deptinfo.pojo.Dept">
+        select
+        dept_id id,dept_code deptCode,level_code levelCode,
+        <if test="language== 'en'||language== 'zh'">
+            dept_name_en deptName,
+        </if>
+        <if test="language== 'fr'">
+            dept_name_fr deptName,
+        </if>
+        dept_parent supDept,status,operate_time operateTime,pass_loginname operator
+        from ts_dept
+        ORDER BY dept_id
+    </select>
+
+    <!--根据deptCode获取部门信息-->
+    <select id="getDeptInfoByDeptCode" resultType="com.beautifulchina.deptinfo.bo.DeptInfoBO" parameterType="string">
+        select  t1.dept_id id,
+        t1.dept_code deptCode,
+        t1.level_code levelCode,
+        t1.dept_name_en deptNameEn,
+        t1.dept_name_fr deptNameFr,
+        t1.dept_parent supDept,
+        t1.status,
+		t2.level_name_en levelNameEn,
+		t2.level_name_fr levelNameFr,
+		t2.level_parent levelParent
+        from ts_dept t1
+        left join ts_level t2
+		on t1.level_code = t2.level_code
+        where t1.dept_code=#{deptCode}
+    </select>
+</mapper>

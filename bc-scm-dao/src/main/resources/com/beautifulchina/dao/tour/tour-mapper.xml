@@ -1,0 +1,598 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.tour.TourMapper">
+    <!-- 根据条件获取线路数据-->
+    <select id="getTour" resultType="com.beautifulchina.tour.pojo.Tour"
+            parameterType="com.beautifulchina.tour.bo.TourBO">
+        select
+        t1.id,t1.code,
+
+        <if test="language=='en'">
+            t1.title_en title,
+        </if>
+        <if test="language=='fr'">
+            t1.title_fr title,
+        </if>
+        <if test="language=='en'">
+            t2.name_en startCityName,
+        </if>
+        <if test="language=='fr'">
+            t2.name_fr startCityName,
+        </if>
+        <if test="language=='en'">
+            t3.name_en endCityName,
+        </if>
+        <if test="language=='fr'">
+            t3.name_fr endCityName,
+        </if>
+
+        t1.title_en titleEn,t1.title_fr titleFr,t1.days,t1.status,
+        t2.name_en startCityEn,t2.name_fr startCityFr,
+        t3.name_en endCityEn,t3.name_fr endCityFr ,t1.owner
+        from tm_tour t1
+        left join
+        tm_city t2 on t1.startcity=t2.id
+        left join
+        tm_city t3 on t1.endcity=t3.id
+        <include refid="where"></include>
+        order by t1.operatetime desc
+        limit #{start},#{limit}
+    </select>
+    <sql id="where">
+        <where>
+            <if test="deptCode!=null and deptCode!=''">
+                and t1.dept_code =#{deptCode}
+            </if>
+            <if test="code!=null and code!=''">
+                and t1.code like CONCAT('%',#{code},'%')
+            </if>
+            <if test="title!=null and title!=''">
+                and (t1.title_en like CONCAT('%',#{title},'%')
+                or t1.title_fr like CONCAT('%',#{title},'%'))
+            </if>
+            <if test="days!=null and days!=''">
+                and t1.days=#{days}
+            </if>
+            <if test="status!=null and status!=''">
+                and t1.status=#{status}
+            </if>
+            <if test="startCityEn!=null and startCityEn!=''">
+                and (t2.name_en like CONCAT('%',#{startCityEn},'%')
+                or t2.name_fr like CONCAT('%',#{startCityEn},'%'))
+            </if>
+            <if test="endCityEn!=null and endCityEn!=''">
+                and (t3.name_en like CONCAT('%',#{endCityEn},'%')
+                or t3.name_fr like CONCAT('%',#{endCityEn},'%'))
+            </if>
+            <if test="owner!=null and owner!=''">
+                and t1.owner=#{owner}
+            </if>
+        </where>
+    </sql>
+    <!--根据条件获取线路数据数量-->
+    <select id="getCount" parameterType="com.beautifulchina.tourdate.bo.TourDateBO" resultType="int">
+        select count(*)
+        from tm_tour t1
+        left join
+        tm_city t2 on t1.startcity=t2.id
+        left join
+        tm_city t3 on t1.endcity=t3.id
+        <include refid="where"></include>
+    </select>
+    <!--根据id删除线路及其相关数据数据-->
+    <delete id="deleteTour">
+        delete t1,t2,t3,t4,t5,t6,t7,t8,t9
+        from tm_tour t1
+        left join tm_tour_theme t2 on t1.id=t2.tour_id
+        left join tm_tourdetail t3 on t1.id=t3.tour_id
+        left join tm_tourconfig t4 on t1.id=t4.tour_id
+        left join tm_tour_image t5 on t1.id=t5.tour_id
+        left join tm_tour_dest t6 on t1.id=t6.tour_id
+        left join tm_tourdate t7 on t1.id=t7.tour_id
+        left join tm_tour_option_value t8 on t1.id=t8.tour_id
+        left join tm_tour_waycity t9 on t1.id=t9.tour_id
+        where t1.id in
+        <foreach item="id" index="index" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <!--&lt;!&ndash;获取供应商代码及名称&ndash;&gt;-->
+    <!--<select id="getSup" resultType="map">-->
+    <!--select dept_code code,sup_name name from ts_supplier-->
+    <!--</select>-->
+    <!--获取线路主题-->
+    <select id="getTheme" resultType="map" parameterType="string">
+        select id,
+        <if test="_parameter=='fr'">
+            title_fr name
+        </if>
+        <if test="_parameter!='fr'">
+            title_en name
+        </if>
+        from tm_theme
+    </select>
+    <!--获取所有行程详情-->
+    <select id="getTourDetail" resultType="com.beautifulchina.tourdetail.pojo.TourDetail" parameterType="map">
+        select
+        trde_id id,
+        trde_content_en contentEn,
+        trde_content_fr contentFr,
+        trde_day day,
+        trde_title_en titleEn,
+        trde_title_fr titleFr,
+        tour_id tourId,
+        trde_destination_en destinationEn,
+        trde_destination_fr destinationFr,
+        trde_hotel_en hotelEn,
+        trde_hotel_fr hotelFr,
+        trde_meals_en mealsEn,
+        trde_meals_fr mealsFr,
+        trde_transport_en transportEn,
+        trde_transport_fr transportFr
+        from tm_tourdetail
+        <include refid="detailwhere"></include>
+        ORDER BY trde_id DESC
+    </select>
+    <sql id="detailwhere">
+        <where>
+            <if test="id!=null and id!=''">
+                and tour_id=#{id}
+            </if>
+        </where>
+    </sql>
+    <!--获取所有行程详情数量-->
+    <select id="getTourDetailCount" resultType="int" parameterType="map">
+        select count(*) from tm_tourdetail
+        <include refid="detailwhere"></include>
+    </select>
+    <!--新增旅游线路信息-->
+    <insert id="insertTour" parameterType="com.beautifulchina.tour.bo.TourBO"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into tm_tour
+        (code,
+        dept_code,
+        title_en,
+        title_fr,
+        startcity,
+        endcity,
+        days,
+        rating,
+        status,
+        operatetime,
+        operator ,
+        category_id,
+        subtitle_en,
+        subtitle_fr,
+        advancedays,
+        owner)
+        values
+        (#{code},
+        #{deptCode},
+        #{titleEn},
+        #{titleFr},
+        #{startCity},
+        #{endCity},
+        #{days},
+        #{rating},
+        #{status},
+        #{operateTime},
+        #{operator},
+        #{category},
+        #{subTitleEn},
+        #{subTitleFr},
+        #{advanceDays},
+        #{owner})
+    </insert>
+    <!--新增旅游线路相关主题-->
+    <insert id="insertTourTheme" parameterType="com.beautifulchina.tour.bo.TourBO">
+        insert into tm_tour_theme
+        (tour_id, thm_id)
+        values
+        (#{id},#{theme})
+    </insert>
+    <!--新增旅游线路相关配置-->
+    <insert id="insertTourConfig">
+        insert into tm_tourconfig
+        (tour_id, type, name, content_en, content_fr)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.tourId},#{item.type},#{item.name},#{item.contentEn},#{item.contentFr})
+        </foreach>
+    </insert>
+    <!--新增旅游线路相关图片-->
+    <insert id="insertImage">
+        insert into tm_tour_image
+        (tour_id, image_url, orders, thumbnail)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.tourId},#{item.imageUrl},#{item.order},#{item.thumbnail})
+        </foreach>
+    </insert>
+    <!--根据id获取所有图片地址-->
+    <select id="selectImageById" resultType="map">
+        select image_url url,orders cover from tm_tour_image where tour_id in
+        <foreach item="id" index="index" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+    <!--删除图片信息-->
+    <delete id="deleteImageById" parameterType="int">
+        delete from tm_tour_image where tour_id=#{tourId} and orders>-1
+    </delete>
+    <!--根据文件路径删除文件-->
+    <delete id="delImageByUrl">
+        delete from tm_tour_image where image_url in
+        <foreach item="urls" index="index" collection="list" open="(" separator="," close=")">
+            #{urls}
+        </foreach>
+    </delete>
+    <!--更新旅游线路信息-->
+    <update id="updateBaseInfo" parameterType="com.beautifulchina.tour.bo.TourBO">
+        update tm_tour t1,tm_tour_theme t2
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="code!=null">t1.code=#{code},</if>
+            <if test="code!=null">t2.tour_id=#{id},</if>
+            <if test="theme!=null">t2.thm_id=#{theme},</if>
+            <if test="titleEn!=null">t1.title_en=#{titleEn},</if>
+            <if test="titleFr!=null">t1.title_fr=#{titleFr},</if>
+            <if test="startCity!=null">t1.startcity=#{startCity},</if>
+            <if test="endCity!=null">t1.endcity=#{endCity},</if>
+            <if test="days!=null">t1.days=#{days},</if>
+            <if test="rating!=null">t1.rating=#{rating},</if>
+            <if test="status!=null">t1.status=#{status},</if>
+            <if test="operateTime!=null">t1.operatetime=#{operateTime},</if>
+            <if test="operator!=null">t1.operator=#{operator},</if>
+            <if test="category!=null">t1.category_id=#{category},</if>
+            <if test="subTitleEn!=null">t1.subtitle_en=#{subTitleEn},</if>
+            <if test="subTitleFr!=null">t1.subtitle_fr=#{subTitleFr},</if>
+            <if test="advanceDays!=null">t1.advancedays=#{advanceDays},</if>
+        </trim>
+        where id=#{id} and t1.id=t2.tour_id
+    </update>
+    <!--更新旅游线路相关配置信息-->
+    <update id="updateTourConfig" parameterType="com.beautifulchina.tourconfig.bo.TourConfigBO">
+        update tm_tourconfig
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="contentEn!=null">content_en=#{contentEn},</if>
+            <if test="contentFr!=null">content_fr=#{contentFr},</if>
+        </trim>
+        where tour_id=#{tourId} and type=#{type}
+    </update>
+    <!--根据id删除行程详情-->
+    <delete id="delDetail">
+        delete from tm_tourdetail where trde_id in
+        <foreach item="id" index="index" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <!--新增详情信息-->
+    <insert id="addDetail" parameterType="com.beautifulchina.tourdetail.bo.TourDetailBO">
+        insert into tm_tourdetail
+        (tour_id, trde_day, trde_title_en,
+        trde_title_fr, trde_content_en, trde_content_fr,
+        trde_destination_en, trde_destination_fr,
+        trde_meals_en, trde_meals_fr, trde_transport_en,
+        trde_transport_fr, trde_hotel_en, trde_hotel_fr)
+        values
+        (#{tourId},#{day},#{titleEn},#{titleFr},#{contentEn},#{contentFr},
+        #{destinationEn},#{destinationFr},#{mealsEn},#{mealsFr},
+        #{transportEn},#{transportFr},#{hotelEn},#{hotelFr})
+    </insert>
+    <!--根据id更新已有详情信息-->
+    <update id="updateDetail" parameterType="com.beautifulchina.tourdetail.bo.TourDetailBO">
+        update tm_tourdetail
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="tourId!=null">
+                tour_id=#{tourId},
+            </if>
+            <if test="day!=null">
+                trde_day=#{day},
+            </if>
+            <if test="titleEn!=null">
+                trde_title_en=#{titleEn},
+            </if>
+            <if test="titleFr!=null">
+                trde_title_fr=#{titleFr},
+            </if>
+            <if test="contentEn!=null">
+                trde_content_en=#{contentEn},
+            </if>
+            <if test="contentFr!=null">
+                trde_content_fr=#{contentFr},
+            </if>
+            <if test="destinationEn!=null">
+                trde_destination_en=#{destinationEn},
+            </if>
+            <if test="destinationFr!=null">
+                trde_destination_fr=#{destinationFr},
+            </if>
+            <if test="hotelEn!=null">
+                trde_hotel_en=#{hotelEn},
+            </if>
+            <if test="hotelFr!=null">
+                trde_hotel_fr=#{hotelFr},
+            </if>
+            <if test="mealsEn!=null">
+                trde_meals_en=#{mealsEn},
+            </if>
+            <if test="mealsFr!=null">
+                trde_meals_fr=#{mealsFr},
+            </if>
+            <if test="transportEn!=null">
+                trde_transport_en=#{transportEn},
+            </if>
+            <if test="transportFr!=null">
+                trde_transport_fr=#{transportFr},
+            </if>
+        </trim>
+        where trde_id=#{id}
+    </update>
+    <!--根据id获取旅游线路信息-->
+    <select id="selectBaseInfoById" parameterType="int" resultType="com.beautifulchina.tour.pojo.Tour">
+          select
+          t1.startcity startCity,t1.endcity endCity,t1.id,t1.code,t1.title_en titleEn,
+          t1.title_fr titleFr,t1.days,t1.status,t1.dept_code deptCode,t1.rating,
+          t1.subtitle_en subTitleEn,t1.subtitle_fr subTitleFr,t1.advancedays advanceDays,
+          t2.name_en startCityEn,t2.name_fr startCityFr,
+          t3.name_en endCityEn,t3.name_fr endCityFr,
+          t4.thm_id theme,
+          t5.content_en contentEn,t5.content_fr contentFr,t5.type
+          from tm_tour t1
+          left join
+          tm_city t2 on t1.startcity=t2.id
+          left join
+          tm_city t3 on t1.endcity=t3.id
+          left join
+          tm_tour_theme t4 on t1.id=t4.tour_id
+          left join
+          tm_tourconfig  t5 on t1.id=t5.tour_id
+          where t1.id=#{id}
+    </select>
+    <!--根据用户部门代码获取用户所有线路图片地址-->
+    <select id="getUserImage" resultType="map" parameterType="string">
+        select t2.image_url url
+        from tm_tour t1
+        left join tm_tour_image t2 on t1.id=t2.tour_id
+        where t2.image_url is not null and t2.image_url!='' and t1.dept_code=#{user}
+    </select>
+    <!--新增线路目的地-->
+    <insert id="insertDestination">
+        insert into tm_tour_dest
+        (tour_id, dest_id)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.tourId},#{item.destId})
+        </foreach>
+    </insert>
+    <!--新增线路途径城市-->
+    <insert id="insertWayCity">
+        insert into tm_tour_waycity
+        (tour_id, city_id)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.tourId},#{item.cityId})
+        </foreach>
+    </insert>
+    <!--获取线路目的地-->
+    <select id="getTourDestination" parameterType="int" resultType="int">
+        select dest_id from tm_tour_dest where tour_id=#{id}
+    </select>
+    <!--获取线路途经城市-->
+    <select id="getTourWayCity" parameterType="int" resultType="int">
+        select city_id from tm_tour_waycity where tour_id=#{id}
+    </select>
+    <!--删除目的地信息-->
+    <delete id="deleteTourDestination" parameterType="int">
+        delete from tm_tour_dest where tour_id=#{id}
+    </delete>
+    <!--删除途经城市-->
+    <delete id="deleteTourWayCity" parameterType="int">
+        delete from tm_tour_waycity where tour_id=#{id}
+    </delete>
+    <!--获取线路代码-->
+    <select id="getTourCode" resultType="int" parameterType="String">
+        select count(*) from tm_tour
+        <include refid="idwhere"></include>
+    </select>
+    <sql id="idwhere">
+        <where>
+            <if test="_parameter!=null">
+                and code = #{code}
+            </if>
+        </where>
+    </sql>
+    <!--根据线路id获取图片地址-->
+    <select id="selectImageByTourId" parameterType="int" resultType="map">
+        select image_url image,thumbnail cover from tm_tour_image where tour_id=#{tourId} and orders>(-1)
+    </select>
+    <!--根据id获取线路选项名信息-->
+    <select id="selectTourOptionById" resultType="com.beautifulchina.tour.pojo.TourOption">
+        select
+        t1.id,t1.value_price price,t1.defaults toleration,
+        <if test="language!='fr'">
+            t2.value_en optionValueName,
+            t3.name_en optionName,
+        </if>
+        <if test="language=='fr'">
+            t2.value_fr optionValueName,
+            t3.name_fr optionName,
+        </if>
+        t2.id valueId,
+        t3.id optionId
+        from tm_tour_option_value t1
+        left join tm_value t2 on t1.value_id=t2.id
+        left join tm_option t3 on t2.option_id=t3.id
+        where t1.tour_id=#{id}
+        order by t3.id desc
+    </select>
+    <!--获取线路选项名信息数量-->
+    <select id="selectTourOptionByIdCount" parameterType="int" resultType="int">
+        select count(*) from (SELECT
+        t3.id
+        FROM tm_tour_option_value t1
+        LEFT JOIN tm_value t2 ON t1.value_id = t2.id
+        LEFT JOIN tm_option t3 ON t2.option_id = t3.id
+        WHERE t1.tour_id=#{id} group by t3.id) t
+    </select>
+
+    <!--根据线路id和订单号获取线路选项名信息-->
+    <select id="getOptionValueByOrderNo" resultType="com.beautifulchina.tour.pojo.TourOption"   >
+       select
+        t1.id,t1.value_price price,
+        t4.orderno orderNo,
+        <if test="language!='fr'">
+            t2.value_en optionValueName,
+            t3.name_en optionName,
+        </if>
+        <if test="language=='fr'">
+            t2.value_fr optionValueName,
+            t3.name_fr optionName,
+        </if>
+        t2.id valueId,
+        t3.id optionId
+        from tm_tour_option_value t1
+        left join tm_value t2 on t1.value_id=t2.id
+        left join tm_option t3 on t2.option_id=t3.id
+        left join tb_orderdetail t4 on t1.value_id = t4.valueid
+        where t1.tour_id=#{tourId} and t4.orderno=#{orderNo} and t4.type='O'
+</select>
+    <!--根据订单号获取线路选项名信息数量-->
+    <select id="getOptionValueByOrderNoCount"  resultType="int"  >
+        select count(*) from (select
+        t3.id
+        from tm_tour_option_value t1
+        left join tm_value t2 on t1.value_id=t2.id
+        left join tm_option t3 on t2.option_id=t3.id
+        left join tb_orderdetail t4 on t1.value_id = t4.valueid
+        where t1.tour_id=#{tourId} and t4.orderno=#{orderNo} and t4.type='O'  group by t3.id) t
+    </select>
+    <!--获取所有选项-->
+    <select id="selectAllOption" resultType="map">
+        select id,
+        <if test="language!='fr'">
+            name_en name
+        </if>
+        <if test="language=='fr'">
+            name_fr name
+        </if>
+        from tm_option
+        where id not in
+        <foreach item="list" index="index" collection="list" open="(" separator="," close=")">
+            #{list}
+        </foreach>
+    </select>
+
+    <!--获取所有选项-->
+    <select id="selectAllOptionByTourId" resultType="map">
+        select id,t2.id valueId,
+        <if test="language!='fr'">
+            name_en name
+        </if>
+        <if test="language=='fr'">
+            name_fr name
+        </if>
+        from tm_option
+        left join tm_value t2 on t1.id=t2.option_id
+        left join tm_tour_option_value t3 on t2.id=t3.value_id
+        where t3.tour_id =#{tourId} and id not in
+        <foreach item="list" index="index" collection="list" open="(" separator="," close=")">
+            #{list}
+        </foreach>
+    </select>
+
+    <!--获取所有选项值-->
+    <select id="selectAllOptionByOrderNo" resultType="map">
+        select id,t2.id valueId,
+        <if test="language!='fr'">
+            name_en name
+        </if>
+        <if test="language=='fr'">
+            name_fr name
+        </if>
+        from tm_option
+        left join tm_value t2 on t1.id=t2.option_id
+        left join tm_tour_option_value t3 on t2.id=t3.value_id
+        where t3.tour_id =#{tourId} and t2.id not in
+        <foreach item="list" index="index" collection="list" open="(" separator="," close=")">
+            #{list}
+        </foreach>
+    </select>
+    <!--根据选项id获取选项值-->
+    <select id="selectOptionValueById" resultType="map">
+        select concat(t1.id,'-',0) id,
+        <if test="language!='fr'">
+            t1.value_en name,
+        </if>
+        <if test="language=='fr'">
+            t1.value_fr name,
+        </if>
+        t1.price price,
+        t1.id valueId
+        from tm_value t1
+        where t1.option_id=#{id}
+        <if test="tourId!=null">
+            and t1.id not in (select value_id from tm_tour_option_value where tour_id=#{tourId})
+        </if>
+    </select>
+
+    <!--根据选项order获取选项值-->
+    <select id="selectOptionValueByOrderNo" resultType="map">
+        select concat(t1.id,'-',0) id,
+        <if test="language!='fr'">
+            t2.value_en name,
+        </if>
+        <if test="language=='fr'">
+            t2.value_fr name,
+        </if>
+        t2.price price,
+        t2.id valueId
+        from tm_tour_option_value t1 left join tm_value t2 on t1.value_id=t2.id
+        left join tm_option  t3 on t2.option_id =t3.id
+        where t1.tour_id =#{tourId} and t2.id not in (select valueid from tb_orderdetail where orderno=#{orderNo} and type='O')
+
+
+    </select>
+    <!--根据选项id获取已用选项值-->
+    <select id="selectExistOptionValueById" resultType="map">
+        select concat(t1.value_id,'-',t1.defaults) id,t1.value_price price , t1.value_id valueId,
+        <if test="language!='fr'">
+            t2.value_en name
+        </if>
+        <if test="language=='fr'">
+            t2.value_fr name
+        </if>
+        from tm_tour_option_value t1
+        left join tm_value t2 on t1.value_id=t2.id
+        where t1.tour_id=#{tourId} and t2.option_id=#{id}
+    </select>
+
+    <!--根据选项id获取已用选项值-->
+    <select id="getExistOptionValueByOrderNo" resultType="map">
+        select t2.id valueId,t3.orderno orderNo,t1.value_price price ,
+        <if test="language!='fr'">
+            t2.value_en name
+        </if>
+        <if test="language=='fr'">
+            t2.value_fr name
+        </if>
+        from tm_tour_option_value t1 left join tm_value t2 on t1.value_id=t2.id
+        left join tb_orderdetail t3 on t2.id= t3.valueid
+        where t1.tour_id=#{tourId} and t2.option_id=#{id} and t3.orderno=#{orderNo}
+    </select>
+    <!--根据路线id删除选项值配置-->
+    <delete id="deleteTourOptionValue" parameterType="int">
+        delete from tm_tour_option_value where id in
+        <foreach item="id" index="index" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+    <insert id="insertTourOptionValue">
+        insert into tm_tour_option_value
+        (tour_id, value_id, value_price,defaults)
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (#{item.tourId},#{item.valueId},#{item.price},#{item.defaults})
+        </foreach>
+
+    </insert>
+</mapper>

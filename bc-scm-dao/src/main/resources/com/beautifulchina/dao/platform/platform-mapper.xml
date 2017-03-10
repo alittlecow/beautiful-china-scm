@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.platform.PlatformMapper" >
+
+    <resultMap id="platform" type="com.beautifulchina.platform.pojo.Platform" >
+         <id column="id" property="id" jdbcType="INTEGER" />
+         <result column="name" property="name"/>
+         <result column="email" property="email"/>
+         <result column="loginname" property="username"/>
+         <result column="dept_code" property="deptCode"/>
+         <result column="role_code" property="roleCode"/>
+         <result column="logintime" property="loginTime"/>
+         <result column="loginip" property="loginIp"/>
+         <result column="status" property="status"/>
+         <result column="tel" property="tel"/>
+         <result column="tel2" property="tel2"/>
+         <result column="pwd" property="password"/>
+         <result column="psw" property="psw"/>
+     </resultMap>
+
+    <select id="login" resultMap="platform" parameterType="com.beautifulchina.platform.vo.PlatformVO">
+        SELECT id,
+            name,
+            email,
+            loginname,
+            dept_code,
+            role_code,
+            logintime,
+            loginip,
+            status,
+            tel,
+            tel2,
+            pwd,
+            psw
+        FROM ts_platform
+
+        WHERE loginname = #{username}
+        ORDER BY id
+    </select>
+
+    <!-- 根据条件获取所有平台用户 -->
+    <select id="getAllUser" resultType="com.beautifulchina.platform.bo.PlatformBO"  parameterType="com.beautifulchina.platform.vo.PlatformVO">
+           SELECT id,
+            name,
+            email,
+            <if test="language == 'en'">
+                t3.dept_name_en deptName,
+            </if>
+            <if test="language == 'fr'">
+                t3.dept_name_fr deptName,
+            </if>
+            t1.loginname loginName,
+            t1.dept_code deptCode,
+            t1.role_code roleCode,
+            t2.role_name_en roleNameEn,
+            t2.role_name_fr roleNameFr,
+            t3.dept_name_en deptNameEn ,
+            t3.dept_name_fr deptNameFr,
+            t1.logintime loginTime,
+            t1.loginip loginIp,
+            t1.status,
+            t1.tel,
+            t1.tel2
+        FROM ts_platform t1
+        LEFT JOIN  ts_role t2 ON t1.role_code=t2.role_code
+        LEFT JOIN ts_dept t3 ON t1.dept_code=t3.dept_code
+        <include refid="sqlWhere"></include>
+        ORDER BY id DESC
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+
+    </select>
+
+    <sql id="sqlWhere">
+        <where>
+            <if test="name != null and name != ''">
+                and t1.name like CONCAT('%',#{name},'%')
+            </if>
+            <if test="loginName != null and loginName != ''">
+                and t1.loginname like CONCAT('%',#{loginName},'%')
+            </if>
+            <if test="deptCode != null and deptCode != ''">
+                and t1.dept_code=#{deptCode}
+            </if>
+            <if test="roleCode != null  and roleCode != ''">
+                and t1.role_code=#{roleCode}
+            </if>
+            <if test="levelCode=='SUPPLIER'">
+                and t3.dept_id = #{deptId}
+            </if>
+        </where>
+
+    </sql>
+
+    <!-- 获取平台用户总数 -->
+    <select id="getPlatformCount" resultType="int" parameterType="com.beautifulchina.platform.vo.PlatformVO">
+        SELECT COUNT(*) FROM ts_platform t1
+        LEFT JOIN  ts_role t2 ON t1.role_code=t2.role_code
+        LEFT JOIN ts_dept t3 ON t1.dept_code=t3.dept_code
+        <include refid="sqlWhere"/>
+    </select>
+
+    <!-- 删除平台用户信息 -->
+    <delete id="delete">
+        delete from ts_platform where id in
+        <foreach item="ids" index="index" collection="list" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </delete>
+
+    <!-- 新增一条平台用户信息 -->
+    <insert id="save" parameterType="com.beautifulchina.platform.pojo.Platform">
+        insert into ts_platform (
+              name,
+            email,
+            loginname,
+            dept_code,
+            role_code,
+            status,
+            tel,
+            tel2,
+            pwd,
+            psw)
+        values (
+        #{name},
+        #{email},
+        #{loginName},
+        #{deptCode},
+        #{roleCode},
+        #{status},
+        #{tel},
+        #{tel2},
+        #{password},
+        #{psw})
+    </insert>
+
+    <!-- 更新修改后的平台用户信息 -->
+    <update id="updatePlatform" parameterType="com.beautifulchina.platform.pojo.Platform">
+        update ts_platform
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="email != null">
+                email = #{email},
+            </if>
+            <if test="deptCode != null">
+                dept_code = #{deptCode},
+            </if>
+            <if test="roleCode != null">
+                role_code = #{roleCode},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="tel != null">
+                tel = #{tel},
+            </if>
+            <if test="tel2 != null">
+                tel2 = #{tel2},
+            </if>
+            <if test="password != null">
+                pwd = #{password},
+            </if>
+            <if test="password != null">
+                psw = #{psw},
+            </if>
+        </trim>
+        where id = #{id}
+    </update>
+
+    <!--验证登录名是否存在-->
+    <select id="getByLoginName" resultType="Integer">
+        SELECT count(*) FROM ts_platform WHERE loginname=#{loginName}
+    </select>
+
+    <!--验证邮箱是否存在-->
+    <select id="getByEmail" resultType="Integer">
+        SELECT count(*) FROM ts_platform WHERE email=#{email}
+    </select>
+
+    <update id="saveLoginMessage" parameterType="com.beautifulchina.user.vo.UserVO">
+        update ts_platform
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="lastLoginTime != null">
+                logintime = #{lastLoginTime},
+            </if>
+            <if test="lastLoginIp != null">
+                loginip = #{lastLoginIp},
+            </if>
+        </trim>
+        where loginname = #{loginName}
+    </update>
+
+</mapper>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.sights.SightsMapper">
+    <!--获取景点信息-->
+    <select id="getSights" parameterType="com.beautifulchina.sights.bo.SightsBO"
+            resultType="com.beautifulchina.sights.pojo.Sights">
+        select t.id,t1.id cityId,
+        t.name_en nameEn,t.name_fr nameFr,
+        t2.name_en cityNameEn,t2.name_en cityNameFr,
+        <if test="language=='en'">
+            t.name_en name,
+            t2.name_en cityName,
+        </if>
+        <if test="language=='fr'">
+            t.name_fr name,
+            t2.name_fr cityName,
+        </if>
+
+        t.desc_en descEn,
+        t.desc_fr descFr,
+        t.level,t.price
+        from tm_sights t
+        left join tm_destination_city t1 on t.city_id=t1.id
+        left join tm_city t2 on t1.city_id=t2.id
+        <include refid="where"></include>
+        ORDER BY t.id desc
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+
+    </select>
+    <sql id="where">
+        <where>
+            <if test="name != null">
+                and (t.name_en like CONCAT('%',#{name},'%')
+                or t.name_fr like CONCAT('%',#{name},'%'))
+            </if>
+            <if test="cityName != null">
+                and (t2.name_en like CONCAT('%',#{cityName},'%')
+                or t2.name_fr like CONCAT('%',#{cityName},'%'))
+            </if>
+        </where>
+    </sql>
+    <!--获取景点数量-->
+    <select id="getCount" resultType="int" parameterType="com.beautifulchina.sights.bo.SightsBO">
+        select count(*) from tm_sights t
+        left join tm_destination_city t1 on t.city_id=t1.id
+        left join tm_city t2 on t1.city_id=t2.id
+        <include refid="where"></include>
+    </select>
+    <!--删除景点信息-->
+    <delete id="delSights">
+        delete from tm_sights where id in
+        <foreach item="ids" index="index" collection="list" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </delete>
+    <!--新增景点信息-->
+    <insert id="addSights" parameterType="com.beautifulchina.sights.bo.SightsBO">
+        insert into tm_sights
+        (city_id, name_en, name_fr, desc_en, desc_fr, level, price)
+        values
+        (#{cityId},#{nameEn},#{nameFr},#{descEn},#{descFr},#{level},#{price})
+    </insert>
+    <!--更新景点信息-->
+    <update id="updSights" parameterType="com.beautifulchina.sights.bo.SightsBO">
+        update tm_sights
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="cityId != null">
+                city_id = #{cityId },
+            </if>
+            <if test="nameEn != null">
+                name_en = #{nameEn },
+            </if>
+            <if test="nameFr != null">
+                name_fr = #{nameFr },
+            </if>
+            <if test="descEn != null">
+                desc_en = #{descEn },
+            </if>
+            <if test="descFr != null">
+                desc_fr = #{descFr },
+            </if>
+            <if test="level != null">
+                level = #{level },
+            </if>
+            <if test="price != null">
+                price = #{price }
+            </if>
+        </trim>
+        where id= #{id}
+    </update>
+    <!--获取目的地城市-->
+    <select id="getDesCity" resultType="map" parameterType="string">
+        select id desCityId,title cityNameEn
+        from tm_destination_city
+    </select>
+</mapper>

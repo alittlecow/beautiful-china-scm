@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.option.ValueMapper" >
+    <!-- 查询选项值信息-->
+    <select id="getValue" resultType="com.beautifulchina.option.bo.ValueBO" parameterType="com.beautifulchina.option.bo.ValueBO">
+        select
+        id  valueId,
+        option_id optionId,
+
+        <if test="language=='en'">
+            value_en optionValue,
+            notes_en  optionNotes,
+        </if>
+        <if test="language=='fr'">
+            value_fr optionValue,
+            notes_fr  optionNotes,
+
+        </if>
+
+        value_en  optionEnValue,
+        value_fr  optionFrValue,
+        notes_en  optionEnNotes,
+        notes_fr  optionFrNotes,
+        price optionPrice
+        from tm_value
+        where option_id = #{optionId}
+        ORDER BY id
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+
+    </select>
+
+    <!-- 查询选项值数量 -->
+    <select id="getValueCount" resultType="int" parameterType="com.beautifulchina.option.bo.ValueBO">
+        select  count(*)
+        from  tm_value
+        where option_id = #{optionId}
+    </select>
+
+    <!-- 保存选项值-->
+    <insert id="saveValue" parameterType="com.beautifulchina.option.bo.OptionBO">
+        insert into tm_value (
+        option_id,
+        value_en,
+        value_fr,
+        notes_en,
+        notes_fr,
+        price
+        )
+        values (
+        #{optionId},
+        #{optionEnValue},
+        #{optionFrValue},
+        #{optionEnNotes},
+        #{optionFrNotes},
+        #{optionPrice}
+        )
+    </insert>
+
+    <!-- 更新选项值 -->
+    <update id="updateValue" parameterType="com.beautifulchina.option.bo.OptionBO">
+        update tm_value
+        <trim prefix="SET" suffixOverrides=",">
+            <if test=" optionEnValue != null">
+                value_en = #{optionEnValue},
+            </if>
+            <if test=" optionFrValue != null">
+                value_fr = #{optionFrValue},
+            </if>
+            <if test=" optionEnNotes != null">
+                notes_en = #{optionEnNotes},
+            </if>
+            <if test=" optionFrNotes != null">
+                notes_fr = #{optionFrNotes},
+            </if>
+            <if test=" optionPrice != null">
+                price = #{optionPrice},
+            </if>
+        </trim>
+        where id = #{valueId}
+    </update>
+
+    <!-- 判断是否可以删除 -->
+    <select id="judgeValueId" resultType="int" parameterType="com.beautifulchina.option.bo.ValueBO">
+        SELECT count(*)
+        FROM
+        tm_value t1
+        left JOIN
+        tm_tour_option_value t2 on t1.id = t2.value_id
+        where t2.id is not null and t1.id = #{valueId}
+    </select>
+
+    <!-- 删除选项值-->
+    <delete id="deleteValue">
+        delete from tm_value where id in
+        <foreach item="codes" index="index" collection="list" open="(" separator="," close=")">
+            #{codes}
+        </foreach>
+    </delete>
+
+    <delete id="deleteOption">
+        delete from tm_value where option_id = #{codes}
+    </delete>
+
+</mapper>

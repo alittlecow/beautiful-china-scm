@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.menu.ModuleMapper">
+
+    <!-- 根据用户编号获取所拥有的模块 -->
+    <select id="getModuleList" resultType="com.beautifulchina.menu.pojo.Module">
+        select t1.module_code code,
+        <if test="language== 'en'||language== 'zh'">
+            t1.module_name_en moduleName,
+        </if>
+        <if test="language== 'fr'">
+            t1.module_name_fr moduleName,
+        </if>
+        t1.module_notes notes,
+        t1.module_sort sort
+        from ts_role t2
+        left join  ts_rolemenu  t3 on t2.role_code=t3.role_code
+        left join ts_menu t4 on t3.menu_code=t4.menu_code
+        left join ts_module t1 on t4.module_code=t1.module_code
+        where t1.status='N' and t2.role_code=#{roleCode}
+        and t1.module_code like CONCAT('',#{plateId},'%')
+        GROUP BY t1.module_code
+    </select>
+
+    <!-- 根据用户编号获取所拥有的模块 -->
+    <select id="getAllModuleList" resultType="com.beautifulchina.menu.pojo.Module">
+        select module_code code,
+        <if test="language== 'en'||language== 'zh'">
+            module_name_en moduleName,
+        </if>
+        <if test="language== 'fr'">
+            module_name_fr moduleName,
+        </if>
+        module_notes notes,
+        module_sort sort
+        from ts_module
+        ORDER BY module_code
+    </select>
+</mapper>

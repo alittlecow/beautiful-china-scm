@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.consultive.ConsultiveMapper">
+
+    <!-- 根据条件获取所有咨询管理信息 -->
+    <select id="getAllConsultiveList" resultType="com.beautifulchina.consultive.pojo.Consultive"
+            parameterType="com.beautifulchina.consultive.bo.ConsultiveBO">
+        select
+        t.tour_id tourId,
+        t.id,
+        t.content,
+        t.status,
+        t.user_id userId,
+        <if test="language =='en'||language=='zh' ">
+            t1.title_en tourName,
+        </if>
+        <if test="language =='fr' ">
+            t1.title_fr tourName,
+        </if>
+        t3.email,
+        t3.nickname,
+        time
+        from tb_question t
+        left JOIN tm_tour t1 ON t.tour_id=t1.id
+        left JOIN ts_user t2 ON t.user_id = t2.id
+        left join ts_userinfo t3 on t2.id=t3.user_id
+        <include refid="sqlWhere"></include>
+        ORDER BY t.id DESC
+    </select>
+    <sql id="sqlWhere">
+        <where>
+            <if test="tourName != null and tourName != ''">
+                and (t1.title_en like CONCAT('%',#{tourName},'%')
+                or t1.title_fr like CONCAT('%',#{tourName},'%'))
+            </if>
+            <if test="status != null and status != ''">
+                and t.status = #{status}
+            </if>
+            <if test="deptCode != null and deptCode != ''">
+                and t1.dept_code = #{deptCode}
+            </if>
+        </where>
+    </sql>
+
+    <!-- 查询咨询管理信息数量 -->
+    <select id="getAllConsultiveListCount" resultType="int"
+            parameterType="com.beautifulchina.consultive.bo.ConsultiveBO">
+        select count(*)
+        from tb_question t
+        left JOIN tm_tour t1 ON t.tour_id=t1.id
+        left JOIN ts_user t2 ON t.user_id = t2.id
+        left join ts_userinfo t3 on t2.id=t3.user_id
+        <include refid="sqlWhere"></include>
+    </select>
+
+    <!-- 提交咨询管理信息 submit-->
+    <insert id="reply" parameterType="com.beautifulchina.consultive.bo.ConsultiveBO">
+        insert into tb_answer
+        (pass_id, time, type, content, question_id)
+        VALUES
+        (#{userId},#{operateTime},#{type},#{contentAn},#{id})
+    </insert>
+
+    <!-- 关闭咨询管理信息 close-->
+    <update id="close" parameterType="com.beautifulchina.consultive.bo.ConsultiveBO">
+        update tb_question
+        <trim prefix="SET" suffixOverrides=",">
+            status = 'C',
+        </trim>
+        where id = #{id}
+    </update>
+
+</mapper>

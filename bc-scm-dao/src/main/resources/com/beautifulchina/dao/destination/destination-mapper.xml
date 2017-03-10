@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.destination.DestinationMapper">
+    <!--获取目的地信息-->
+    <select id="getDestination" resultType="com.beautifulchina.destination.pojo.Destination"
+            parameterType="com.beautifulchina.destination.bo.DestinationBO">
+        select
+        <if test="language == 'en'">
+            t1.name_en cityName,
+        </if>
+        <if test="language == 'fr'">
+            t1.name_fr cityName,
+        </if>
+        t2.content title,
+        t3.content `desc`,
+        t.id,t.city_id cityId,t.status,
+        t.photo_one photoOne,t.photo_two photoTwo,t.photo_three photoThree,t.photo_four photoFour
+        from tm_destination_city t
+        left join tm_city t1 on t.city_id=t1.id
+        left join ts_language t2 on t.title=t2.uuid and t2.type=#{language}
+        left join ts_language t3 on t.desc=t3.uuid and t3.type=#{language}
+        <include refid="where"></include>
+        order by t.id desc
+        limit #{start},#{limit}
+    </select>
+    <sql id="where">
+        <where>
+            <if test="cityName != null and language == 'en'">
+                and t2.content like concat('%',#{cityName},'%')
+            </if>
+        </where>
+    </sql>
+    <!--获取目的地信息数量-->
+    <select id="getCount" parameterType="com.beautifulchina.destination.bo.DestinationBO" resultType="int">
+        select count(*)
+        from tm_destination_city t
+        left join tm_city t1 on t.city_id=t1.id
+        left join ts_language t2 on t.title=t2.uuid and t2.type=#{language}
+        left join ts_language t3 on t.desc=t3.uuid and t3.type=#{language}
+        <include refid="where"></include>
+    </select>
+    <!--根据id信息删除目的地信息-->
+    <delete id="delDestination">
+        delete t1,t2,t3
+        from tm_destination_city t1
+        left join ts_language t2 on t1.title=t2.uuid
+        left join ts_language t3 on t1.desc=t3.uuid
+        where id in
+        <foreach item="ids" index="index" collection="list" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </delete>
+    <!--根据id信息删除目的地多语言信息-->
+    <delete id="delDestinationLanguage">
+        delete t2,t3
+        from tm_destination_city t1
+        left join ts_language t2 on t1.title=t2.uuid
+        left join ts_language t3 on t1.desc=t3.uuid
+        where id=#{ids}
+    </delete>
+    <!--新增目的地信息-->
+    <insert id="addDestination" parameterType="com.beautifulchina.destination.bo.DestinationBO"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into tm_destination_city
+        (city_id, title, `desc`, status,photo_one,photo_two,photo_three,photo_four)
+        values
+        (#{cityId},#{title},#{desc},#{status},#{photoOne},#{photoTwo},#{photoThree},#{photoFour})
+    </insert>
+    <!--更新目的地信息-->
+    <update id="updDestination" parameterType="com.beautifulchina.destination.bo.DestinationBO">
+        update tm_destination_city
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="cityId != null">
+                city_id = #{cityId},
+            </if>
+            <if test="title != null">
+                title = #{title},
+            </if>
+            <if test="desc!= null">
+                `desc` = #{desc},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="photoOne != null">
+                photo_one = #{photoOne},
+            </if>
+            <if test="photoTwo != null">
+                photo_two = #{photoTwo},
+            </if>
+            <if test="photoThree != null">
+                photo_three = #{photoThree},
+            </if>
+            <if test="photoFour != null">
+                photo_four = #{photoFour},
+            </if>
+        </trim>
+        where id=#{id}
+    </update>
+    <!--根据id获取图片名称-->
+    <select id="getPhotoNameById" resultType="map">
+        select photo_one,photo_two,photo_three,photo_four from tm_destination_city where id in
+        <foreach item="ids" index="index" collection="list" open="(" separator="," close=")">
+            #{ids}
+        </foreach>
+    </select>
+    <!--修改目的地图片-->
+    <update id="updPhoto" parameterType="com.beautifulchina.destination.bo.DestinationDeletePhotoBO">
+        update tm_destination_city
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="photoOne != null">
+                photo_one = "",
+            </if>
+            <if test="photoTwo != null">
+                photo_two = "",
+            </if>
+            <if test="photoThree != null">
+                photo_three = "",
+            </if>
+            <if test="photoFour != null">
+                photo_four = "",
+            </if>
+        </trim>
+        where id=#{id}
+    </update>
+    <!-- 获取目的地信息-->
+    <select id="getDestinationById" resultType="map"
+            parameterType="com.beautifulchina.destination.bo.DestinationBO">
+        select t2.content title,t3.content `desc`
+        from tm_destination_city t1
+        left join ts_language t2 on t1.title=t2.uuid and t2.type=#{language}
+        left join ts_language t3 on t1.desc=t3.uuid and t3.type=#{language}
+        where t1.id=#{id}
+    </select>
+</mapper>

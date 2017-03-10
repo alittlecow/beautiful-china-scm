@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.beautifulchina.dao.mailhistory.MailHistoryMapper" >
+
+
+    <!-- 获取所有邮件信息-->
+    <select id="getAllUser" resultType="com.beautifulchina.mailhistory.pojo.MailHistory">
+            select * from ts_mailhistory
+    </select>
+
+    <!-- 根据条件获取所有邮件信息 -->
+    <select id="getAllMailHistoryList" resultType="com.beautifulchina.mailhistory.pojo.MailHistory">
+        select title,
+                content,
+                email,
+                type,
+                orderno,
+                operatetime
+        from ts_mailhistory
+        <include refid="sqlWhere"></include>
+
+    </select>
+    <sql id="sqlWhere">
+        <where>
+            <if test="email != null and email != ''">
+                and email like CONCAT('%',#{email},'%')
+            </if>
+            <if test="orderNo != null and orderNo != ''">
+                and orderno like CONCAT('%',#{orderNo},'%')
+            </if>
+        </where>
+        ORDER BY id
+        <if test="limit != null and start != null">
+            limit #{start},#{limit}
+        </if>
+    </sql>
+
+<!-- 查询菜单数量 -->
+    <select id="getAllMailHistoryListCount" resultType="int" parameterType="com.beautifulchina.mailhistory.bo.MailHistoryBO">
+        select count(*)
+           from ts_mailhistory t1
+    </select>
+
+    <!-- 查看邮件内容 -->
+    <insert id="check" parameterType="com.beautifulchina.mailhistory.bo.MailHistoryBO">
+        select content
+        from ts_mailhistory
+    </insert>
+
+    <!--保存邮箱的历史记录-->
+    <insert id="saveEmailHistory" parameterType="com.beautifulchina.mailhistory.vo.MailHistoryVO">
+        insert into ts_mailhistory(title,content,user_id,email,operatetime)
+        VALUES (#{title},#{content},#{userId},#{email},#{operateTime})
+    </insert>
+</mapper>
