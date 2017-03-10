@@ -6,31 +6,24 @@
     <!-- 根据条件获取所有城市信息 -->
     <select id="getAllCityList" resultType="com.beautifulchina.city.pojo.City" parameterType="com.beautifulchina.city.bo.CityBO">
         select id cityId,
-        <if test="language=='en'">
-        name_en cityName,
-        </if>
-        <if test="language=='fr'">
-        name_fr cityName,
-        </if>
-        name_en cityNameEn,
-        name_fr cityNameFr,
-        desc_en descEn,
-        desc_fr descFr,
+        a.content `cityName`,
+        b.content `desc`,
         photo_one photoOne,
         photo_two photoTwo,
         photo_three photoThree,
         photo_four photoFour
-        from tm_city
+        from tm_city tc
+        JOIN ts_language a ON tc.`name` = a.uuid
+        JOIN ts_language b ON tc.`desc` = b.uuid
+        AND a.type = b.type
+        AND a.type =#{language}
         <include refid="sqlWhere"></include>
         order by id desc
     </select>
     <sql id="sqlWhere">
         <where>
             <if test="cityName != null and cityName != '' and language=='en'">
-                and  name_en like CONCAT('%',#{cityName},'%')
-            </if>
-            <if test="cityName != null and cityName != '' and language=='fr'">
-                and  name_fr like CONCAT('%',#{cityName},'%')
+                and  a.content  like CONCAT('%',#{cityName},'%')
             </if>
         </where>
     </sql>
@@ -38,7 +31,7 @@
     <!-- 查询城市信息数量 -->
     <select id="getAllCityListCount" resultType="int" parameterType="com.beautifulchina.city.bo.CityBO">
         select count(*)
-        from tm_city
+        from tm_city tc   JOIN ts_language a ON tc.`name` = a.uuid
         <include refid="sqlWhere"/>
     </select>
 

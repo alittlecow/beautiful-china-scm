@@ -61,11 +61,7 @@ public class CommonService {
                 for (City city:cityList){
                     CityBO cityBO = new CityBO();
                     cityBO.setCityId(city.getCityId());
-                    if("fr".equals(language)){
-                        cityBO.setCityName(city.getCityNameFr());
-                    }else {
-                        cityBO.setCityName(city.getCityNameEn());
-                    }
+                    cityBO.setCityName(city.getCityName());
                     cityBOList.add(cityBO);
                 }
             }

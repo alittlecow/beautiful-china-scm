@@ -270,8 +270,6 @@ Ext.define('app.view.city.CityInfoWin', {
                         color: '#C0B6BE'
                     }
                 }]
-
-
         }]
     }]
 });
