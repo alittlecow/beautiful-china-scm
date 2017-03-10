@@ -33,7 +33,7 @@ Ext.define('app.view.city.CityGrid',{
             text:'{cityName}'
         }},
         {dataIndex: 'cityId', flex: 2,bind:{
-            text:'{cityId}'
+            text:'{address}'
             // , hidden: true
         }}
 
