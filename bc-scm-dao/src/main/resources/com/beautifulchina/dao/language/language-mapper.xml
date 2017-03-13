@@ -10,4 +10,8 @@
             (#{item.uuid},#{item.type},#{item.content})
         </foreach>
     </insert>
+
+    <select id="getLanguageContent" parameterMap="java.util.Map">
+      SELECT tl.content FROM ts_language tl WHERE tl.type=#{type} AND tl.uuid=#{key};
+    </select>
 </mapper>
