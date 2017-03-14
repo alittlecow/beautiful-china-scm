@@ -8,6 +8,7 @@
 package com.beautifulchina.city.vo;
 
 
+import com.beautifulchina.annotation.Locale;
 import com.beautifulchina.common.PageQuery;
 
 /**
@@ -18,6 +19,7 @@ public class CityVO extends PageQuery {
     /**
      *  城市id
      */
+    @Locale
     private Integer cityId;
 
     /**
