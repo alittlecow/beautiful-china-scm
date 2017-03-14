@@ -14,5 +14,5 @@ import java.lang.annotation.RetentionPolicy;
 @Retention(RetentionPolicy.RUNTIME)
 @JacksonAnnotationsInside
 @JsonSerialize(using = MultiLanguageSerialize.class)
-public @interface Local {
+public @interface Locale {
 }

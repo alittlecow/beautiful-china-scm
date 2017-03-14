@@ -22,6 +22,7 @@ public class LanguageDataRepository implements MultiLanguageSupport {
         Map<String, String> params = new HashMap<String, String>();
         params.put("key", key);
         params.put("local", local);
-        return languageMapper.getLanguageContent(params);
+        String content = languageMapper.getLanguageContent(params);
+        return content != null ? content : "";
     }
 }

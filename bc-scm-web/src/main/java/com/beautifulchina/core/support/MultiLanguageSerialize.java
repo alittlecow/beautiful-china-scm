@@ -1,6 +1,6 @@
 package com.beautifulchina.core.support;
 
-import com.beautifulchina.core.annotation.Local;
+import com.beautifulchina.core.annotation.Locale;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.BeanProperty;
@@ -40,7 +40,7 @@ public class MultiLanguageSerialize extends JsonSerializer<Object> implements Co
     @Override
     public JsonSerializer<?> createContextual(SerializerProvider serializerProvider, BeanProperty beanProperty) throws JsonMappingException {
         if (beanProperty != null) {
-            Local local = beanProperty.getAnnotation(Local.class);
+            Locale local = beanProperty.getAnnotation(Locale.class);
             if (local != null) {
                 return new MultiLanguageSerialize();
             }
